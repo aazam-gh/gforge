@@ -1,0 +1,1 @@
+{"synthetic":true,"account":{"id":"acme-corp","name":"Acme Corp"},"contract":{"seats":2800,"pricePerSeatCents":3600},"entitlements":{"provisionedSeats":2800},"usage":{"activeSeats":2734},"crm":{"seats":2800},"billing":{"seats":2000,"annualLeakageCents":34560000}}

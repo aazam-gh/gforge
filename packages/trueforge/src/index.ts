@@ -1,0 +1,3 @@
+export type TrueForgeState='connected'|'unavailable';
+const configured = Boolean((globalThis as {process?:{env?:Record<string,string|undefined>}}).process?.env?.TRUEFORGE_API_KEY);
+export class TrueForgeAdapter {readonly state:TrueForgeState=configured?'connected':'unavailable'; private unavailable():never{throw new Error('TRUEFORGE_UNAVAILABLE: configure TRUEFORGE_API_KEY before starting a session');} createOrReuseSession(){return this.unavailable();} submitTurn(){return this.unavailable();} subscribeToEvents(){return this.unavailable();} respondToApproval(){return this.unavailable();} retrieveSession(){return this.unavailable();} mapEventToCaseEvent(){return this.unavailable();}}

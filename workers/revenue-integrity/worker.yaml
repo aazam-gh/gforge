@@ -1,0 +1,19 @@
+id: revenue-integrity
+name: Revenue Integrity Fleet
+objective: Reconcile enterprise commercial, entitlement, usage, CRM, and billing state; surface financial impact and propose governed corrections.
+specialist_agents:
+  - contract_agent
+  - usage_agent
+  - billing_agent
+skills:
+  - revenue-integrity
+mcp_servers:
+  - name: enterprise-mcp
+    url: http://localhost:4000/mcp
+permissions:
+  read: [account, contract, usage_summary, entitlements, billing_state, crm_state]
+  sensitive_write: [update_billing_quantity]
+approval_rules:
+  - tool: update_billing_quantity
+    require_human_approval: true
+success_criteria: Evidence-backed finding, deterministic impact calculation, approved action verification, durable case event trail.
