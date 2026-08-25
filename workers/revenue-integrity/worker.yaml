@@ -1,5 +1,10 @@
 id: revenue-integrity
 name: Revenue Integrity Fleet
+role: Governed revenue reconciliation worker
+owner_department: Revenue Operations
+version: 0.1.0
+status: draft
+model_framework: TrueForge supervisor with Google ADK specialists
 objective: Reconcile enterprise commercial, entitlement, usage, CRM, and billing state; surface financial impact and propose governed corrections.
 specialist_agents:
   - contract_agent
