@@ -20,9 +20,18 @@ importers:
       '@workeros/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@workeros/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@workeros/operations':
         specifier: workspace:*
         version: link:../../packages/operations
+      '@workeros/trueforge':
+        specifier: workspace:*
+        version: link:../../packages/trueforge
+      drizzle-orm:
+        specifier: ^0.38.3
+        version: 0.38.4(@types/pg@8.23.1)(@types/react@19.2.18)(pg@8.23.0)(react@19.2.8)
       lucide-react:
         specifier: ^0.468.0
         version: 0.468.0(react@19.2.8)

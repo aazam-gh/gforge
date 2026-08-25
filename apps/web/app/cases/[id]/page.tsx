@@ -7,9 +7,12 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { acmeSnapshot, dollars } from "../../../lib/acme";
+import { startAcmeAction } from "../../actions";
+import { acmeWorkflow } from "../../../lib/workflow";
 export const dynamic = "force-dynamic";
 export default async function CaseDetail() {
   const snapshot = await acmeSnapshot();
+  const workflow = await acmeWorkflow();
   if (!snapshot)
     return (
       <div className="page">
@@ -43,6 +46,11 @@ export default async function CaseDetail() {
             Amendment #3 is governing; billing has not adopted its terms.
           </p>
         </div>
+        <form action={startAcmeAction}>
+          <button className="button primary" type="submit">
+            Run live investigation
+          </button>
+        </form>
         <div className="impact">
           <strong>{dollars(snapshot.annualizedLeakageCents)}</strong>
           <span>annualized leakage</span>
@@ -58,7 +66,11 @@ export default async function CaseDetail() {
         }}
       >
         <div>
-          <span className="status warn">approval required</span>
+          <span
+            className={`status ${workflow?.currentCase.status === "waiting_for_approval" ? "warn" : ""}`}
+          >
+            {workflow?.currentCase.status ?? "not started"}
+          </span>
           <p style={{ fontSize: 12, marginTop: 10, color: "var(--muted)" }}>
             A pricing and billing write cannot execute until an accountable
             Revenue Ops approver grants the persisted request.
@@ -183,11 +195,48 @@ export default async function CaseDetail() {
               className="button primary"
               style={{ width: "100%", justifyContent: "center" }}
             >
-              Review exact approval
+              {workflow?.currentCase.status === "waiting_for_approval"
+                ? "Review exact approval"
+                : "Open approval queue"}
             </Link>
           </div>
         </section>
       </div>
+      {workflow ? (
+        <section className="card" style={{ marginTop: 14 }}>
+          <div className="section-head">
+            <div>
+              <div className="eyebrow" style={{ marginBottom: 8 }}>
+                live case timeline
+              </div>
+              <h2>{workflow.currentCase.id}</h2>
+            </div>
+            <span className="status">{workflow.events.length} events</span>
+          </div>
+          {workflow.events.map((event) => (
+            <div className="evidence-row" key={event.id}>
+              <span>{event.type}</span>
+              <span className="mono">{event.actor}</span>
+            </div>
+          ))}
+          {workflow.verification ? (
+            <p
+              style={{
+                color:
+                  workflow.verification.passed === "true"
+                    ? "var(--green)"
+                    : "var(--signal)",
+                marginTop: 14,
+              }}
+            >
+              Verification:{" "}
+              {workflow.verification.passed === "true"
+                ? "passed — case resolved"
+                : "failed"}
+            </p>
+          ) : null}
+        </section>
+      ) : null}
     </div>
   );
 }

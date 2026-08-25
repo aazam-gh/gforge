@@ -18,6 +18,7 @@
     "db:seed": "pnpm --filter @workeros/db seed",
     "mcp:dev": "pnpm --filter @workeros/enterprise-mcp dev",
     "mcp:cloud": "bash scripts/start-cloud-mcp.sh",
+    "day-one:dev": "bash scripts/start-day-one.sh",
     "adk:dev": "cd services/adk-agents && .venv/bin/python -m uvicorn app:app --reload --port 8001"
   },
   "devDependencies": {

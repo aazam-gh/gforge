@@ -10,7 +10,10 @@
   },
   "dependencies": {
     "@workeros/contracts": "workspace:*",
+    "@workeros/db": "workspace:*",
     "@workeros/operations": "workspace:*",
+    "@workeros/trueforge": "workspace:*",
+    "drizzle-orm": "^0.38.3",
     "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -14,4 +14,10 @@ Run `gcloud auth application-default login`, then export `GOOGLE_CLOUD_PROJECT=w
 
 ## TrueForge
 
+For the Day One live UI, export the configured TrueForge tenant values without
+committing them, then run `pnpm day-one:dev`. The launcher shares the isolated
+Cloud SQL runtime connection with the web app and MCP, checks the ADK health
+endpoint, and refuses to run without all three `TRUEFORGE_*` values. It never
+prints or persists the token.
+
 Set `TRUEFORGE_BASE_URL`, `TRUEFORGE_TOKEN`, and `TRUEFORGE_AGENT_NAME` from the existing tenant. The adapter creates/continues a real SDK session only when all three are present. Its absence is deliberately surfaced as `TRUEFORGE_UNAVAILABLE`; it is never replaced with a fake run.
