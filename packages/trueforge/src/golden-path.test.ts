@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { startAcmeGoldenPath } from "./golden-path";
+import {
+  resumeAcmeGoldenPath,
+  startAcmeGoldenPath,
+  type GoldenPathInvestigation,
+} from "./golden-path";
 
 describe("Acme golden path", () => {
   it("stops at a persisted approval boundary before billing mutation", async () => {
@@ -39,7 +43,7 @@ describe("Acme golden path", () => {
           annualizedImpactCents: 31200000,
         }),
         decideApproval: vi.fn(),
-        updateBillingTerms: vi.fn(),
+        updateApprovedBillingTerms: vi.fn(),
         verifyBillingCorrection: vi.fn(),
       },
       idFactory: () => ({
@@ -53,5 +57,36 @@ describe("Acme golden path", () => {
     );
     expect(result.status).toBe("waiting_for_approval");
     expect(result.correction.annualizedImpactCents).toBe(31200000);
+  });
+
+  it("does not pass caller-supplied terms into the resume mutation", async () => {
+    const updateApprovedBillingTerms = vi.fn().mockResolvedValue(undefined);
+    const investigation = {
+      caseId: "CASE-1",
+      sessionId: "tf-session-1",
+      approvalId: "approval-1",
+      proposalId: "proposal-1",
+      status: "waiting_for_approval",
+      correction: {
+        accountId: "attacker-account",
+        caseId: "CASE-1",
+        approvalId: "approval-1",
+        idempotencyKey: "attacker-key",
+        before: { platformFeeCents: 1, discountBps: 0, activeServices: [] },
+        after: { platformFeeCents: 2, discountBps: 0, activeServices: [] },
+        annualizedImpactCents: 1,
+      },
+    } satisfies GoldenPathInvestigation;
+    const result = await resumeAcmeGoldenPath(investigation, {
+      decideApproval: vi.fn().mockResolvedValue(undefined),
+      updateApprovedBillingTerms,
+      verifyBillingCorrection: vi
+        .fn()
+        .mockResolvedValue({ passed: true, reconciliation: {} }),
+    });
+    expect(updateApprovedBillingTerms).toHaveBeenCalledWith({
+      approvalId: "approval-1",
+    });
+    expect(result.status).toBe("resolved");
   });
 });

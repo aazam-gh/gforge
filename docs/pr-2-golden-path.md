@@ -9,7 +9,7 @@ This change is intentionally limited to the first governed commercial workflow:
 The new `@workeros/trueforge` supervisor boundary has two explicit phases:
 
 - `startAcmeGoldenPath` creates or reuses the TrueForge session, submits the investigation turn, validates the specialist result, persists the Case and proposal, and returns only in `waiting_for_approval`.
-- `resumeAcmeGoldenPath` is called by the human approval path and performs approval, the existing idempotent billing write, authoritative reread, and verification.
+- `resumeAcmeGoldenPath` is called by the human approval path and performs approval, then asks operations to load the persisted proposal before performing the idempotent billing write, authoritative reread, and verification. Resumed caller payloads cannot supply billing terms.
 
 The database operations and ADK/MCP clients are injected at this boundary so the supervisor remains testable and cannot silently substitute simulated external success. The production composition must inject the real TrueForge adapter, MCP reads, Vertex bridge validation, and database operations.
 
@@ -17,6 +17,7 @@ The database operations and ADK/MCP clients are injected at this boundary so the
 
 - ADK Pydantic output now serializes the camelCase contract expected by WorkerOS while accepting Python field names.
 - Case event sequence allocation uses a PostgreSQL transaction advisory lock, preventing concurrent appenders from selecting the same sequence.
+- Billing mutation validation loads the Case and proposal server-side and rejects account, case, before/after term, impact, or idempotency mismatches.
 
 ## Review and test evidence
 

@@ -1,5 +1,6 @@
 import { and, eq, sql } from "drizzle-orm";
 import {
+  ApprovedBillingCorrectionRequestSchema,
   BillingCorrectionSchema,
   BillingTermsSchema,
   type BillingCorrection,
@@ -226,11 +227,29 @@ export async function updateBillingTerms(input: BillingCorrection) {
       assertApprovedWrite("update_billing_terms", approval);
       if (!approval || approval.caseId !== correction.caseId)
         throw new Error("APPROVAL_CASE_MISMATCH");
+      const currentCase = await tx.query.cases.findFirst({
+        where: eq(cases.id, correction.caseId),
+      });
+      if (!currentCase) throw new Error("CASE_NOT_FOUND");
+      if (currentCase.accountId !== correction.accountId)
+        throw new Error("CASE_ACCOUNT_MISMATCH");
       const proposal = await tx.query.proposals.findFirst({
         where: eq(proposals.id, approval.proposalId),
       });
-      if (!proposal || proposal.idempotencyKey !== correction.idempotencyKey)
+      if (
+        !proposal ||
+        proposal.caseId !== correction.caseId ||
+        proposal.idempotencyKey !== correction.idempotencyKey
+      )
         throw new Error("PROPOSAL_MISMATCH");
+      const approvedBefore = BillingTermsSchema.parse(proposal.before);
+      const approvedAfter = BillingTermsSchema.parse(proposal.after);
+      if (
+        JSON.stringify(approvedBefore) !== JSON.stringify(correction.before) ||
+        JSON.stringify(approvedAfter) !== JSON.stringify(correction.after) ||
+        Number(proposal.impactCents) !== correction.annualizedImpactCents
+      )
+        throw new Error("PROPOSAL_TERMS_MISMATCH");
       const current = await tx.query.billingStates.findFirst({
         where: eq(billingStates.accountId, correction.accountId),
       });
@@ -264,6 +283,34 @@ export async function updateBillingTerms(input: BillingCorrection) {
       );
       return result;
     });
+}
+
+export async function updateApprovedBillingTerms(input: {
+  approvalId: string;
+}) {
+  const request = ApprovedBillingCorrectionRequestSchema.parse(input);
+  const approval = await db().query.approvals.findFirst({
+    where: eq(approvals.id, request.approvalId),
+  });
+  if (!approval) throw new Error("APPROVAL_NOT_FOUND");
+  const currentCase = await db().query.cases.findFirst({
+    where: eq(cases.id, approval.caseId),
+  });
+  if (!currentCase) throw new Error("CASE_NOT_FOUND");
+  const proposal = await db().query.proposals.findFirst({
+    where: eq(proposals.id, approval.proposalId),
+  });
+  if (!proposal || proposal.caseId !== currentCase.id)
+    throw new Error("PROPOSAL_NOT_FOUND");
+  return updateBillingTerms({
+    accountId: currentCase.accountId,
+    caseId: currentCase.id,
+    approvalId: approval.id,
+    idempotencyKey: proposal.idempotencyKey,
+    before: BillingTermsSchema.parse(proposal.before),
+    after: BillingTermsSchema.parse(proposal.after),
+    annualizedImpactCents: Number(proposal.impactCents),
+  });
 }
 
 export async function verifyBillingCorrection(caseId: string) {

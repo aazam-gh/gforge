@@ -69,7 +69,9 @@ export type SupervisorDependencies = {
       decision: "approved" | "rejected",
       decidedBy: string,
     ) => Promise<unknown>;
-    updateBillingTerms: (correction: BillingCorrection) => Promise<unknown>;
+    updateApprovedBillingTerms: (input: {
+      approvalId: string;
+    }) => Promise<unknown>;
     verifyBillingCorrection: (caseId: string) => Promise<{
       passed: boolean;
       reconciliation: unknown;
@@ -151,7 +153,7 @@ export async function resumeAcmeGoldenPath(
   investigation: GoldenPathInvestigation,
   operations: Pick<
     SupervisorDependencies["operations"],
-    "decideApproval" | "updateBillingTerms" | "verifyBillingCorrection"
+    "decideApproval" | "updateApprovedBillingTerms" | "verifyBillingCorrection"
   >,
   decidedBy = "revenue-ops-demo",
 ): Promise<GoldenPathResolution> {
@@ -160,7 +162,9 @@ export async function resumeAcmeGoldenPath(
     "approved",
     decidedBy,
   );
-  await operations.updateBillingTerms(investigation.correction);
+  await operations.updateApprovedBillingTerms({
+    approvalId: investigation.approvalId,
+  });
   const verification = await operations.verifyBillingCorrection(
     investigation.caseId,
   );
