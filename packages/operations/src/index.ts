@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import {
   BillingCorrectionSchema,
   BillingTermsSchema,
@@ -74,19 +74,24 @@ export async function appendCaseEvent(
   actor: string,
   payload: unknown,
 ) {
-  const events = await db()
-    .select({ sequence: caseEvents.sequence })
-    .from(caseEvents)
-    .where(eq(caseEvents.caseId, caseId));
-  await db()
-    .insert(caseEvents)
-    .values({
+  await db().transaction(async (tx) => {
+    await tx.execute(
+      sql`select pg_advisory_xact_lock(hashtextextended(${caseId}, 0))`,
+    );
+    const [next] = await tx
+      .select({
+        sequence: sql<number>`coalesce(max(cast(${caseEvents.sequence} as integer)), 0) + 1`,
+      })
+      .from(caseEvents)
+      .where(eq(caseEvents.caseId, caseId));
+    await tx.insert(caseEvents).values({
       caseId,
-      sequence: String(events.length + 1).padStart(4, "0"),
+      sequence: String(next.sequence).padStart(4, "0"),
       type,
       actor,
       payload,
     });
+  });
 }
 
 export async function createCommercialChangeCase(

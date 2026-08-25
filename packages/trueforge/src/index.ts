@@ -50,3 +50,5 @@ export class TrueForgeAdapter {
     return { type: "trueforge.event", actor: "trueforge", payload: event };
   }
 }
+
+export * from "./golden-path";

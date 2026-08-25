@@ -7,23 +7,25 @@ from google.adk.models import Gemini
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 MODEL = os.getenv('WORKEROS_GEMINI_MODEL', 'gemini-3-flash-preview')
 APP_NAME = 'workeros_contract_assurance'
 class EvidenceReference(BaseModel):
-    document_id: str
-    clause_id: str
-    effective_from: str
-    extracted_value: str | int | bool
+    model_config = ConfigDict(populate_by_name=True)
+    document_id: str = Field(alias='documentId')
+    clause_id: str = Field(alias='clauseId')
+    effective_from: str = Field(alias='effectiveFrom')
+    extracted_value: str | int | bool = Field(alias='extractedValue')
     source: Literal['contract', 'amendment']
 class SpecialistResult(BaseModel):
-    agent_id: Literal['contract_agent'] = 'contract_agent'
+    model_config = ConfigDict(populate_by_name=True)
+    agent_id: Literal['contract_agent'] = Field('contract_agent', alias='agentId')
     status: Literal['completed', 'failed', 'ambiguous']
-    commercial_facts: list[EvidenceReference] = Field(default_factory=list)
+    commercial_facts: list[EvidenceReference] = Field(default_factory=list, alias='commercialFacts')
     confidence: float = Field(ge=0, le=1)
     conflicts: list[str] = Field(default_factory=list)
-    follow_up_required: bool
+    follow_up_required: bool = Field(alias='followUpRequired')
     error: str | None = None
 CONTRACT_INSTRUCTION = """You are WorkerOS's Contract Agent. Extract only commercial facts explicitly present in supplied governing agreement text. Return JSON matching the requested schema. Preserve document IDs, clause IDs, and effective dates. Never calculate invoices, decide precedence, or propose any billing mutation. If a term is missing, contradictory, or unclear, return status 'ambiguous', describe conflicts, and set follow_up_required true."""
 contract_agent = Agent(
