@@ -15,10 +15,11 @@ Implemented foundation:
 - `workers/revenue-integrity/` contains the worker manifest and Skill.
 - `fixtures/demo-enterprise/acme.json` is synthetic demo data.
 - CI, build, and workspace smoke tests are present.
+- Commercial Change Assurance has a typed deterministic reconciliation core, PostgreSQL/Drizzle schema and migration, database-backed MCP tool surface, and a real ADK Contract Agent definition.
 
 ## Explicitly not yet implemented
 
-The following remain planned and must not be described as live: PostgreSQL/Drizzle persistence, real HTTP MCP transport, TrueForge session execution, sandbox/Code Mode execution, ADK deployment on Vertex/Agent Runtime, Gemini configuration, Memory Bank, Cloud SQL/Pub/Sub/Secret Manager/Cloud Observability, Qodo installation/review history, real event streaming, and the end-to-end approval/write/verification path.
+The following remain planned or externally blocked and must not be described as live: a created Cloud SQL trial database (Console-only setup still needs its password), a live TrueForge tenant session, sandbox/Code Mode execution, ADK deployment on Vertex/Agent Runtime, a Vertex model accessible to this project, Memory Bank, Pub/Sub/Secret Manager/Cloud Observability, Qodo installation/review history, and real event streaming. The persisted approval/write/verification code is implemented but cannot be integration-executed until Cloud SQL is created and connected.
 
 ## First vertical-slice acceptance
 

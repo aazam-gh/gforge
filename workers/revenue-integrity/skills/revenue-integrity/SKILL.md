@@ -1,12 +1,9 @@
-# Revenue integrity
+# Revenue Integrity: Commercial Change Assurance
 
-- Independently reconcile contract, entitlement, usage, CRM, and billing evidence.
-- Never infer a financial mismatch from one source alone.
-- Distinguish underbilling from overbilling.
-- Calculate impact deterministically when possible.
-- Require human approval before changing customer billing.
-- After an approved correction, independently verify the new state.
-- Preserve evidence used for every conclusion.
-- Apply company escalation rules for missing or conflicting evidence.
-- Never reduce a fixed-seat contract solely because active usage is lower.
-- Never mark a Case resolved without independent post-correction verification.
+- Determine currently effective commercial terms from governing agreement evidence and amendments.
+- Preserve evidence references for every material fact; contract state is authoritative over operational state.
+- Treat conflicting amendments, missing evidence, and uncertain extraction as escalation conditions.
+- Use deterministic precedence, effective-date evaluation, and financial calculations; do not ask an LLM to invent arithmetic.
+- Detect drift between effective state, CRM, and billing; never infer material action from one weak source.
+- Require a persisted TrueForge approval for pricing or billing changes.
+- Re-read billing after mutation and never resolve before independent verification succeeds.
