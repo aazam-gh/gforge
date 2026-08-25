@@ -4,5 +4,7 @@ dist
 .env*
 !.env.example
 __pycache__
+.venv
 .pytest_cache
 *.pyc
+*.tsbuildinfo

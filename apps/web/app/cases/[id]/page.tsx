@@ -1,1 +1,193 @@
-import Link from 'next/link'; import {ChevronLeft,CircleAlert,FileText,Lock,ShieldCheck} from 'lucide-react'; export default function CaseDetail(){return <div className="page"><Link href="/cases" className="eyebrow" style={{display:'inline-flex',gap:7,alignItems:'center',marginBottom:28}}><ChevronLeft size={13}/> all cases</Link><div className="case-hero"><div><div className="case-id">CASE-1042 · OPENED 12 MINUTES AGO · ACME CORP</div><h1>Billing quantity drift</h1><p className="subtitle">A cross-source reconciliation found a material gap between contracted seats and billed seats.</p></div><div className="impact"><strong>$1,036,800</strong><span>annualized exposure</span></div></div><div className="card" style={{marginBottom:14,display:'flex',justifyContent:'space-between',alignItems:'center'}}><div><span className="status warn">waiting for approval</span><p style={{fontSize:12,marginTop:10,color:'var(--muted)'}}>Investigation complete · proposed billing correction is gated.</p></div><span className="mono" style={{fontSize:11,color:'var(--muted)'}}>owner / revenue ops</span></div><div className="grid agent-grid">{[['contract_agent','Contracted seats: 2,800','Price per seat: $36.00 / mo','source verified · contract v4',FileText],['usage_agent','Active usage: 2,734','Provisioned: 2,800','source verified · usage API',ShieldCheck],['billing_agent','Billed seats: 2,000','Variance: 800 seats','outlier detected · billing',CircleAlert]].map(([n,a,b,f,I],i)=><div className="card agent" key={n as string}><div className="agent-top"><span className="agent-name">{n as string}</span><I size={16} color={i===2?'var(--signal)':'var(--green)'}/></div><p className={'agent-result '+(i===2?'warn':'')}>{a as string}<br/>{b as string}</p><footer><I size={12}/> {f as string}</footer></div>)}</div><div className="grid detail-grid"><section className="card"><div className="section-head"><div><div className="eyebrow" style={{marginBottom:8}}>evidence ledger</div><h2>Independent source comparison</h2></div><span className="status">4 sources</span></div>{[['Contract entitlement','2,800 seats'],['Product entitlement','2,800 seats'],['Active usage','2,734 seats'],['CRM account state','2,800 seats'],['Billing configuration','2,000 seats'],['Computed impact','800 × $36 × 12 = $345,600']].map((r,i)=><div className="evidence-row" key={r[0]}><span>{r[0]}</span><span className={i>3?'warn':''}>{r[1]}</span></div>)}</section><section className="card"><div className="section-head"><div><div className="eyebrow" style={{marginBottom:8}}>proposed action</div><h2>Correct billing quantity</h2></div><Lock size={15} color="var(--signal)"/></div><div className="card action"><div className="mono warn" style={{fontSize:11}}>SENSITIVE WRITE</div><p style={{color:'#c9b8a9',fontSize:12,lineHeight:1.55,margin:'11px 0 18px'}}>Update Acme Corp billing quantity from 2,000 to 2,800 seats. This changes the customer’s next invoice and requires an authorized human decision.</p><Link href="/approvals" className="button primary" style={{width:'100%',justifyContent:'center'}}>Review approval</Link></div><div className="eyebrow" style={{marginTop:22,marginBottom:10}}>event timeline</div><div className="timeline"><div className="event"><div className="event-icon">✓</div><p>All three specialists returned evidence <small>2m ago</small></p></div><div className="event"><div className="event-icon">!</div><p>Approval gate created <small>1m ago</small></p></div></div></section></div></div>}
+import Link from "next/link";
+import {
+  ChevronLeft,
+  CircleAlert,
+  FileText,
+  Lock,
+  ShieldCheck,
+} from "lucide-react";
+import { acmeSnapshot, dollars } from "../../../lib/acme";
+export const dynamic = "force-dynamic";
+export default async function CaseDetail() {
+  const snapshot = await acmeSnapshot();
+  if (!snapshot)
+    return (
+      <div className="page">
+        <h1>Commercial Change Assurance</h1>
+        <p className="subtitle">
+          Persisted Acme state is unavailable. Configure DATABASE_URL, migrate,
+          and seed the demo before starting a Case.
+        </p>
+      </div>
+    );
+  const expected = snapshot.expected;
+  return (
+    <div className="page">
+      <Link
+        href="/cases"
+        className="eyebrow"
+        style={{
+          display: "inline-flex",
+          gap: 7,
+          alignItems: "center",
+          marginBottom: 28,
+        }}
+      >
+        <ChevronLeft size={13} /> all cases
+      </Link>
+      <div className="case-hero">
+        <div>
+          <div className="case-id">ACME GLOBAL · EFFECTIVE 2026-07-01</div>
+          <h1>Commercial change assurance</h1>
+          <p className="subtitle">
+            Amendment #3 is governing; billing has not adopted its terms.
+          </p>
+        </div>
+        <div className="impact">
+          <strong>{dollars(snapshot.annualizedLeakageCents)}</strong>
+          <span>annualized leakage</span>
+        </div>
+      </div>
+      <div
+        className="card"
+        style={{
+          marginBottom: 14,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <div>
+          <span className="status warn">approval required</span>
+          <p style={{ fontSize: 12, marginTop: 10, color: "var(--muted)" }}>
+            A pricing and billing write cannot execute until an accountable
+            Revenue Ops approver grants the persisted request.
+          </p>
+        </div>
+        <span className="mono" style={{ fontSize: 11, color: "var(--muted)" }}>
+          owner / revenue ops
+        </span>
+      </div>
+      <div className="grid agent-grid">
+        <div className="card agent">
+          <div className="agent-top">
+            <span className="agent-name">contract_agent</span>
+            <FileText size={16} color="var(--green)" />
+          </div>
+          <p className="agent-result">
+            Amendment #3 effective
+            <br />
+            Platform + Premium Data Processing
+          </p>
+          <footer>
+            <FileText size={12} /> governing evidence
+          </footer>
+        </div>
+        <div className="card agent">
+          <div className="agent-top">
+            <span className="agent-name">crm_state</span>
+            <ShieldCheck size={16} color="var(--green)" />
+          </div>
+          <p className="agent-result">
+            {dollars(expected.platformFeeCents)} platform
+            <br />
+            0% discount · Premium active
+          </p>
+          <footer>
+            <ShieldCheck size={12} /> operational state
+          </footer>
+        </div>
+        <div className="card agent">
+          <div className="agent-top">
+            <span className="agent-name">billing_state</span>
+            <CircleAlert size={16} color="var(--signal)" />
+          </div>
+          <p className="agent-result warn">
+            {dollars(snapshot.billing.platformFeeCents)} platform
+            <br />
+            15% discount · Premium missing
+          </p>
+          <footer>
+            <CircleAlert size={12} /> drift detected
+          </footer>
+        </div>
+      </div>
+      <div className="grid detail-grid">
+        <section className="card">
+          <div className="section-head">
+            <div>
+              <div className="eyebrow" style={{ marginBottom: 8 }}>
+                commercial state
+              </div>
+              <h2>Evidence-backed reconciliation</h2>
+            </div>
+            <span className="status">
+              {expected.governingDocuments.length} documents
+            </span>
+          </div>
+          {[
+            [
+              "Expected annual billing",
+              dollars(expected.expectedAnnualValueCents),
+            ],
+            [
+              "Current annual billing",
+              dollars(
+                expected.expectedAnnualValueCents -
+                  snapshot.annualizedLeakageCents,
+              ),
+            ],
+            ["Annualized impact", dollars(snapshot.annualizedLeakageCents)],
+            ["Governing amendment", "Amendment #3 · 2026-07-01"],
+            [
+              "Evidence",
+              expected.evidence
+                .map((item) => `${item.documentId}/${item.clauseId}`)
+                .join(", "),
+            ],
+          ].map((row, index) => (
+            <div className="evidence-row" key={row[0]}>
+              <span>{row[0]}</span>
+              <span className={index < 3 ? "warn" : ""}>{row[1]}</span>
+            </div>
+          ))}
+        </section>
+        <section className="card">
+          <div className="section-head">
+            <div>
+              <div className="eyebrow" style={{ marginBottom: 8 }}>
+                proposed correction
+              </div>
+              <h2>Update billing terms</h2>
+            </div>
+            <Lock size={15} color="var(--signal)" />
+          </div>
+          <div className="card action">
+            <div className="mono warn" style={{ fontSize: 11 }}>
+              SENSITIVE WRITE
+            </div>
+            <p
+              style={{
+                color: "#c9b8a9",
+                fontSize: 12,
+                lineHeight: 1.55,
+                margin: "11px 0 18px",
+              }}
+            >
+              Platform {dollars(snapshot.billing.platformFeeCents)} →{" "}
+              {dollars(expected.platformFeeCents)}; discount 15% → 0%; add
+              Premium Data Processing at $48,000/year.
+            </p>
+            <Link
+              href="/approvals"
+              className="button primary"
+              style={{ width: "100%", justifyContent: "center" }}
+            >
+              Review exact approval
+            </Link>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}

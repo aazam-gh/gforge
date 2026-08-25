@@ -1,1 +1,54 @@
-import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'; import {z} from 'zod'; export const server=new McpServer({name:'workeros-enterprise',version:'0.1.0'}); const read=(name:string,description:string)=>server.tool(name,description,{accountId:z.string()},async({accountId}:{accountId:string})=>({content:[{type:'text',text:JSON.stringify({accountId,status:'development_database_not_connected',message:'Connect DATABASE_URL to query PostgreSQL demo data.'})}]})); ['get_account','get_contract','get_usage_summary','get_entitlements','get_billing_state','get_crm_state'].forEach(n=>read(n,`Read ${n.replace('get_','')} from PostgreSQL demo data.`)); server.tool('update_billing_quantity','Sensitive write: update billed quantity. Must be approved by TrueForge.',{accountId:z.string(),quantity:z.number().int().positive()},async()=>({content:[{type:'text',text:'SENSITIVE_WRITE_REQUIRES_TRUEFORGE_APPROVAL'}]})); server.tool('add_crm_note','Write an auditable note to the CRM.',{accountId:z.string(),note:z.string()},async()=>({content:[{type:'text',text:'DEVELOPMENT_DATABASE_NOT_CONNECTED'}]}));
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { BillingCorrectionSchema } from "@workeros/contracts";
+import {
+  readAccount,
+  readBillingState,
+  readContract,
+  readCrmState,
+  updateBillingTerms,
+} from "@workeros/operations";
+import { z } from "zod";
+
+const result = (value: unknown) => ({
+  content: [{ type: "text" as const, text: JSON.stringify(value) }],
+  structuredContent: value as Record<string, unknown>,
+});
+const readInput = { accountId: z.string().min(1) };
+export function createEnterpriseMcpServer() {
+  const server = new McpServer({
+    name: "workeros-enterprise",
+    version: "0.2.0",
+  });
+  server.tool(
+    "get_account",
+    "Read authoritative account identity. Read-only.",
+    readInput,
+    async ({ accountId }) => result(await readAccount(accountId)),
+  );
+  server.tool(
+    "get_contract",
+    "Read governing agreements and amendments with evidence. Read-only.",
+    readInput,
+    async ({ accountId }) => result(await readContract(accountId)),
+  );
+  server.tool(
+    "get_crm_state",
+    "Read CRM commercial state. Read-only.",
+    readInput,
+    async ({ accountId }) => result(await readCrmState(accountId)),
+  );
+  server.tool(
+    "get_billing_state",
+    "Read authoritative current billing terms. Read-only.",
+    readInput,
+    async ({ accountId }) => result(await readBillingState(accountId)),
+  );
+  server.tool(
+    "update_billing_terms",
+    "Sensitive write. Applies exact approved commercial terms only after a valid persisted TrueForge-linked approval.",
+    { correction: BillingCorrectionSchema },
+    async ({ correction }) => result(await updateBillingTerms(correction)),
+  );
+  return server;
+}
+export const server = createEnterpriseMcpServer();

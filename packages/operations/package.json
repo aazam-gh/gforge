@@ -1,0 +1,22 @@
+{
+  "name": "@workeros/operations",
+  "version": "0.1.0",
+  "private": true,
+  "exports": "./src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@workeros/contracts": "workspace:*",
+    "@workeros/db": "workspace:*",
+    "@workeros/domain": "workspace:*",
+    "@workeros/policy": "workspace:*",
+    "drizzle-orm": "^0.38.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

@@ -1,1 +1,39 @@
-{"synthetic":true,"account":{"id":"acme-corp","name":"Acme Corp"},"contract":{"seats":2800,"pricePerSeatCents":3600},"entitlements":{"provisionedSeats":2800},"usage":{"activeSeats":2734},"crm":{"seats":2800},"billing":{"seats":2000,"annualLeakageCents":34560000}}
+{
+  "synthetic": true,
+  "account": { "id": "acme-global", "name": "Acme Global" },
+  "effectiveAt": "2026-07-01",
+  "documents": [
+    {
+      "id": "agreement-1",
+      "kind": "agreement",
+      "effectiveFrom": "2025-01-01",
+      "platformFeeCents": 120000000,
+      "discountBps": 1500
+    },
+    {
+      "id": "amendment-3",
+      "kind": "amendment",
+      "effectiveFrom": "2026-07-01",
+      "platformFeeCents": 128400000,
+      "discountBps": 0,
+      "activeServices": [
+        { "serviceId": "premium-data-processing", "annualFeeCents": 4800000 }
+      ]
+    }
+  ],
+  "crm": {
+    "platformFeeCents": 128400000,
+    "discountBps": 0,
+    "premiumDataProcessing": "active"
+  },
+  "billing": {
+    "platformFeeCents": 120000000,
+    "discountBps": 1500,
+    "premiumDataProcessing": "missing",
+    "annualBillingCents": 102000000
+  },
+  "expected": {
+    "annualBillingCents": 133200000,
+    "annualLeakageCents": 31200000
+  }
+}
