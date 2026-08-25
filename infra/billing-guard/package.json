@@ -1,0 +1,10 @@
+{
+  "name": "workeros-billing-guard",
+  "private": true,
+  "engines": { "python": "3.12" },
+  "dependencies": {
+    "functions-framework": "^3.8.2",
+    "google-cloud-billing": "^1.16.2",
+    "google-api-python-client": "^2.180.0"
+  }
+}
