@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { ArrowRight, Lock, ShieldCheck } from "lucide-react";
 import { acmeSnapshot, dollars } from "../../lib/acme";
+import { approveAcmeAction } from "../actions";
+import { acmeWorkflow } from "../../lib/workflow";
 export const dynamic = "force-dynamic";
 export default async function Approvals() {
   const snapshot = await acmeSnapshot();
+  const workflow = await acmeWorkflow();
   if (!snapshot)
     return (
       <div className="page">
@@ -34,12 +37,18 @@ export default async function Approvals() {
             <Lock size={17} color="var(--signal)" />
             <div>
               <div className="eyebrow" style={{ marginBottom: 8 }}>
-                pending decision · update_billing_terms
+                {workflow?.approval?.decision === "approved"
+                  ? "approved · resume update_billing_terms"
+                  : "pending decision · update_billing_terms"}
               </div>
               <h2>Bring Acme Global billing into agreement</h2>
             </div>
           </div>
-          <span className="status warn">approval required</span>
+          <span
+            className={`status ${workflow?.currentCase.status === "waiting_for_approval" ? "warn" : ""}`}
+          >
+            {workflow?.currentCase.status ?? "not started"}
+          </span>
         </div>
         <div
           className="grid"
@@ -77,9 +86,28 @@ export default async function Approvals() {
           Only a persisted approval tied to the TrueForge request can execute
           this mutation. Rejection changes no billing state.
         </p>
-        <Link href="/cases/CASE-ACME" className="button primary">
-          Inspect evidence <ArrowRight size={14} />
-        </Link>
+        <div style={{ display: "flex", gap: 10 }}>
+          <Link
+            href={`/cases/${workflow?.currentCase.id ?? "acme"}`}
+            className="button"
+          >
+            Inspect evidence <ArrowRight size={14} />
+          </Link>
+          {workflow &&
+          workflow.currentCase.status !== "resolved" &&
+          workflow?.approval?.decision !== "rejected" ? (
+            <form action={approveAcmeAction}>
+              <input
+                type="hidden"
+                name="caseId"
+                value={workflow.currentCase.id}
+              />
+              <button className="button primary" type="submit">
+                Approve and run correction
+              </button>
+            </form>
+          ) : null}
+        </div>
       </section>
       <section className="card" style={{ marginTop: 14 }}>
         <div className="section-head">

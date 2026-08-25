@@ -10,6 +10,7 @@ from google.genai import types
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 MODEL = os.getenv('WORKEROS_GEMINI_MODEL', 'gemini-3-flash-preview')
+TIMEOUT_SECONDS = float(os.getenv('WORKEROS_ADK_TIMEOUT_SECONDS', '120'))
 APP_NAME = 'workeros_contract_assurance'
 class EvidenceReference(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
@@ -47,7 +48,7 @@ async def analyze_contract(documents: list[dict]) -> SpecialistResult:
         async for event in runner.run_async(user_id='workeros-supervisor', session_id=session.id, new_message=types.Content(role='user', parts=[types.Part(text=prompt)])):
             if event.is_final_response() and event.content and event.content.parts: final_text = ''.join(part.text or '' for part in event.content.parts)
         return final_text
-    try: return SpecialistResult.model_validate_json(await asyncio.wait_for(run(), timeout=25))
+    try: return SpecialistResult.model_validate_json(await asyncio.wait_for(run(), timeout=TIMEOUT_SECONDS))
     except TimeoutError as error: raise RuntimeError('CONTRACT_AGENT_TIMEOUT') from error
     except (ValidationError, json.JSONDecodeError) as error: raise RuntimeError('CONTRACT_AGENT_INVALID_RESPONSE') from error
     except Exception as error: raise RuntimeError('CONTRACT_AGENT_EXECUTION_FAILED') from error

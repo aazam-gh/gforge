@@ -77,13 +77,17 @@ describe("Acme golden path", () => {
         annualizedImpactCents: 1,
       },
     } satisfies GoldenPathInvestigation;
-    const result = await resumeAcmeGoldenPath(investigation, {
-      decideApproval: vi.fn().mockResolvedValue(undefined),
-      updateApprovedBillingTerms,
-      verifyBillingCorrection: vi
-        .fn()
-        .mockResolvedValue({ passed: true, reconciliation: {} }),
-    });
+    const result = await resumeAcmeGoldenPath(
+      investigation,
+      {
+        decideApproval: vi.fn().mockResolvedValue(undefined),
+        updateApprovedBillingTerms,
+        verifyBillingCorrection: vi
+          .fn()
+          .mockResolvedValue({ passed: true, reconciliation: {} }),
+      },
+      { userId: "revenue-ops-demo", workspaceId: "acme-operations" },
+    );
     expect(updateApprovedBillingTerms).toHaveBeenCalledWith({
       approvalId: "approval-1",
     });

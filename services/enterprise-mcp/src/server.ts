@@ -11,7 +11,9 @@ import { z } from "zod";
 
 const result = (value: unknown) => ({
   content: [{ type: "text" as const, text: JSON.stringify(value) }],
-  structuredContent: value as Record<string, unknown>,
+  ...(value && typeof value === "object" && !Array.isArray(value)
+    ? { structuredContent: value as Record<string, unknown> }
+    : {}),
 });
 const readInput = { accountId: z.string().min(1) };
 export function createEnterpriseMcpServer() {

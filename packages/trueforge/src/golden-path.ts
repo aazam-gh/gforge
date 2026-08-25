@@ -40,6 +40,10 @@ export type GoldenPathResolution = {
   status: "resolved";
   verification: { passed: boolean; reconciliation: unknown };
 };
+export type ApproverContext = {
+  userId: string;
+  workspaceId: string;
+};
 
 export type SupervisorDependencies = {
   trueforge: Pick<TrueForgeAdapter, "createOrReuseSession" | "submitTurn">;
@@ -81,8 +85,8 @@ export type SupervisorDependencies = {
 };
 
 const ids = () => {
-  const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  return { approvalId: `approval-${suffix}`, idempotencyKey: `acme-${suffix}` };
+  const approvalId = crypto.randomUUID();
+  return { approvalId, idempotencyKey: `acme-${approvalId}` };
 };
 
 /** Starts the governed investigation and deliberately returns before any billing write. */
@@ -155,12 +159,12 @@ export async function resumeAcmeGoldenPath(
     SupervisorDependencies["operations"],
     "decideApproval" | "updateApprovedBillingTerms" | "verifyBillingCorrection"
   >,
-  decidedBy = "revenue-ops-demo",
+  approver: ApproverContext,
 ): Promise<GoldenPathResolution> {
   await operations.decideApproval(
     investigation.approvalId,
     "approved",
-    decidedBy,
+    approver.userId,
   );
   await operations.updateApprovedBillingTerms({
     approvalId: investigation.approvalId,

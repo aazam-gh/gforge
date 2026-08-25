@@ -73,7 +73,7 @@ export const ContractAgentResultSchema = z.object({
   confidence: z.number().min(0).max(1),
   conflicts: z.array(z.string()),
   followUpRequired: z.boolean(),
-  error: z.string().optional(),
+  error: z.string().nullable().optional(),
 });
 export const BillingTermsSchema = z.object({
   platformFeeCents: z.number().int().nonnegative(),

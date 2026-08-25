@@ -14,4 +14,17 @@ Run `gcloud auth application-default login`, then export `GOOGLE_CLOUD_PROJECT=w
 
 ## TrueForge
 
-Set `TRUEFORGE_BASE_URL`, `TRUEFORGE_TOKEN`, and `TRUEFORGE_AGENT_NAME` from the existing tenant. The adapter creates/continues a real SDK session only when all three are present. Its absence is deliberately surfaced as `TRUEFORGE_UNAVAILABLE`; it is never replaced with a fake run.
+For the Day One live UI, export the configured TrueForge tenant values without
+committing them, then run `pnpm day-one:dev`. The launcher shares the isolated
+Cloud SQL runtime connection with the web app and MCP, checks the ADK health
+endpoint, and refuses to run without the TrueForge base URL and agent name. It
+never prints or persists a token.
+
+Set `TRUEFORGE_BASE_URL` and `TRUEFORGE_AGENT_NAME` from the existing local or remote tenant. Add `TRUEFORGE_TOKEN` only when authentication is enabled. The adapter creates/continues a real SDK session only when the endpoint and agent are present. Its absence is deliberately surfaced as `TRUEFORGE_UNAVAILABLE`; it is never replaced with a fake run.
+
+The Day One UI uses a server-derived seeded Revenue Ops session for this MVP:
+`WORKEROS_APPROVER_ID`, `WORKEROS_APPROVER_WORKSPACE_ID`, and
+`WORKEROS_APPROVER_ROLES`. The approval form supplies only a case ID; the
+server session supplies the approver identity, role, and workspace. Replace
+this development session provider with the deployed identity session before
+production use.
