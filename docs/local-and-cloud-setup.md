@@ -21,3 +21,10 @@ endpoint, and refuses to run without the TrueForge base URL and agent name. It
 never prints or persists a token.
 
 Set `TRUEFORGE_BASE_URL` and `TRUEFORGE_AGENT_NAME` from the existing local or remote tenant. Add `TRUEFORGE_TOKEN` only when authentication is enabled. The adapter creates/continues a real SDK session only when the endpoint and agent are present. Its absence is deliberately surfaced as `TRUEFORGE_UNAVAILABLE`; it is never replaced with a fake run.
+
+The Day One UI uses a server-derived seeded Revenue Ops session for this MVP:
+`WORKEROS_APPROVER_ID`, `WORKEROS_APPROVER_WORKSPACE_ID`, and
+`WORKEROS_APPROVER_ROLES`. The approval form supplies only a case ID; the
+server session supplies the approver identity, role, and workspace. Replace
+this development session provider with the deployed identity session before
+production use.

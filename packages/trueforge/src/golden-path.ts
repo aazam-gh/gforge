@@ -40,6 +40,10 @@ export type GoldenPathResolution = {
   status: "resolved";
   verification: { passed: boolean; reconciliation: unknown };
 };
+export type ApproverContext = {
+  userId: string;
+  workspaceId: string;
+};
 
 export type SupervisorDependencies = {
   trueforge: Pick<TrueForgeAdapter, "createOrReuseSession" | "submitTurn">;
@@ -155,12 +159,12 @@ export async function resumeAcmeGoldenPath(
     SupervisorDependencies["operations"],
     "decideApproval" | "updateApprovedBillingTerms" | "verifyBillingCorrection"
   >,
-  decidedBy = "revenue-ops-demo",
+  approver: ApproverContext,
 ): Promise<GoldenPathResolution> {
   await operations.decideApproval(
     investigation.approvalId,
     "approved",
-    decidedBy,
+    approver.userId,
   );
   await operations.updateApprovedBillingTerms({
     approvalId: investigation.approvalId,

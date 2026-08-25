@@ -46,6 +46,9 @@ fi
 export DATABASE_URL="postgres://${runtime_user}:${runtime_password}@127.0.0.1:5432/${runtime_database}"
 export WORKEROS_MCP_URL="${WORKEROS_MCP_URL:-http://127.0.0.1:4000/mcp}"
 export WORKEROS_ADK_URL="${WORKEROS_ADK_URL:-http://127.0.0.1:8001}"
+export WORKEROS_APPROVER_ID="${WORKEROS_APPROVER_ID:-revenue-ops-demo}"
+export WORKEROS_APPROVER_WORKSPACE_ID="${WORKEROS_APPROVER_WORKSPACE_ID:-acme-operations}"
+export WORKEROS_APPROVER_ROLES="${WORKEROS_APPROVER_ROLES:-revenue_ops}"
 
 if lsof -nP -iTCP:4000 -sTCP:LISTEN >/dev/null 2>&1; then
   echo "port 4000 is already in use; stop the existing MCP process before starting Day One" >&2

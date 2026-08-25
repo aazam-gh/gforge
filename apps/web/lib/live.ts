@@ -15,6 +15,7 @@ import {
   TrueForgeAdapter,
 } from "@workeros/trueforge";
 import { eq } from "drizzle-orm";
+import type { ApproverSession } from "./session";
 
 const env = (name: string, fallback: string) =>
   process.env[name]?.trim() || fallback;
@@ -107,11 +108,14 @@ export async function startLiveAcmeInvestigation() {
 
 async function loadInvestigation(
   caseId: string,
+  session: ApproverSession,
 ): Promise<GoldenPathInvestigation> {
   const currentCase = await db().query.cases.findFirst({
     where: eq(cases.id, caseId),
   });
   if (!currentCase) throw new Error("CASE_NOT_FOUND");
+  if (currentCase.workspaceId !== session.workspaceId)
+    throw new Error("CASE_WORKSPACE_FORBIDDEN");
   const approval = await db().query.approvals.findFirst({
     where: eq(approvals.caseId, caseId),
   });
@@ -138,8 +142,16 @@ async function loadInvestigation(
   };
 }
 
-export async function approveLiveAcmeCase(caseId: string) {
-  const investigation = await loadInvestigation(caseId);
-  const result = await resumeAcmeGoldenPath(investigation, operations);
+export async function approveLiveAcmeCase(
+  caseId: string,
+  session: ApproverSession,
+) {
+  if (!session.roles.includes("revenue_ops"))
+    throw new Error("APPROVAL_ROLE_FORBIDDEN");
+  const investigation = await loadInvestigation(caseId, session);
+  const result = await resumeAcmeGoldenPath(investigation, operations, {
+    userId: session.userId,
+    workspaceId: session.workspaceId,
+  });
   return result;
 }
