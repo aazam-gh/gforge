@@ -19,7 +19,7 @@ Implemented foundation:
 
 ## Explicitly not yet implemented
 
-The following remain planned or externally blocked and must not be described as live: a created Cloud SQL trial database (Console-only setup still needs its password), a live TrueForge tenant session, sandbox/Code Mode execution, ADK deployment on Vertex/Agent Runtime, a Vertex model accessible to this project, Memory Bank, Pub/Sub/Secret Manager/Cloud Observability, Qodo installation/review history, and real event streaming. The persisted approval/write/verification code is implemented but cannot be integration-executed until Cloud SQL is created and connected.
+The following remain planned or externally blocked and must not be described as live: a local application connection to the created Cloud SQL trial database (the password remains user-held), a live TrueForge tenant session, sandbox/Code Mode execution, ADK deployment on Vertex/Agent Runtime, a Vertex model accessible to this project in `us-central1`, Memory Bank, Pub/Sub/Secret Manager/Cloud Observability, Qodo installation/review history, and real event streaming. The Cloud SQL schema and Acme seed are persisted; end-to-end application integration remains blocked on the local connection and external tenants.
 
 ## First vertical-slice acceptance
 
