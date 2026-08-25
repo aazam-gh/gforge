@@ -1,3 +1,5 @@
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { ContractAgentResultSchema } from "@workeros/contracts";
 import { approvals, cases, db, proposals } from "@workeros/db";
 import {
@@ -20,34 +22,32 @@ import type { ApproverSession } from "./session";
 const env = (name: string, fallback: string) =>
   process.env[name]?.trim() || fallback;
 
-async function mcpCall<T>(name: string, accountId: string): Promise<T> {
-  const response = await fetch(
-    env("WORKEROS_MCP_URL", "http://127.0.0.1:4000/mcp"),
-    {
-      method: "POST",
-      headers: {
-        accept: "application/json, text/event-stream",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: Date.now(),
-        method: "tools/call",
-        params: { name, arguments: { accountId } },
-      }),
-    },
+async function withMcpClient<T>(fn: (client: Client) => Promise<T>) {
+  const client = new Client({ name: "workeros-web", version: "0.3.0" });
+  const transport = new StreamableHTTPClientTransport(
+    new URL(env("WORKEROS_MCP_URL", "http://127.0.0.1:4000/mcp")),
   );
-  const raw = await response.text();
-  const dataLine = raw.split("\n").find((line) => line.startsWith("data: "));
-  const envelope = JSON.parse(dataLine?.slice(6) ?? raw) as {
-    error?: { message?: string };
-    result?: { structuredContent?: T; content?: { text?: string }[] };
-  };
-  if (!response.ok || envelope.error)
-    throw new Error(envelope.error?.message ?? "MCP_REQUEST_FAILED");
-  if (envelope.result?.structuredContent)
-    return envelope.result.structuredContent;
-  const text = envelope.result?.content?.find((item) => item.text)?.text;
+  await client.connect(transport);
+  try {
+    return await fn(client);
+  } finally {
+    await client.close();
+  }
+}
+
+async function mcpCall<T>(
+  client: Client,
+  name: string,
+  accountId: string,
+): Promise<T> {
+  const result = await client.callTool({
+    name,
+    arguments: { accountId },
+  });
+  if (result.isError) throw new Error("MCP_TOOL_FAILED");
+  if (result.structuredContent) return result.structuredContent as T;
+  const content = result.content as Array<{ type: string; text?: string }>;
+  const text = content.find((item) => item.type === "text")?.text;
   if (!text) throw new Error("MCP_EMPTY_RESULT");
   return JSON.parse(text) as T;
 }
@@ -85,20 +85,22 @@ export async function startLiveAcmeInvestigation() {
   return startAcmeGoldenPath(accountId, {
     trueforge: adapter,
     readContract: async (id) => {
-      await Promise.all([
-        mcpCall("get_account", id),
-        mcpCall("get_crm_state", id),
-        mcpCall("get_billing_state", id),
-      ]);
-      const value = await mcpCall<unknown>("get_contract", id);
-      if (Array.isArray(value)) return value;
-      if (
-        value &&
-        typeof value === "object" &&
-        Array.isArray((value as { documents?: unknown[] }).documents)
-      )
-        return (value as { documents: unknown[] }).documents;
-      throw new Error("MCP_CONTRACT_RESULT_NOT_A_LIST");
+      return withMcpClient(async (client) => {
+        await Promise.all([
+          mcpCall(client, "get_account", id),
+          mcpCall(client, "get_crm_state", id),
+          mcpCall(client, "get_billing_state", id),
+        ]);
+        const value = await mcpCall<unknown>(client, "get_contract", id);
+        if (Array.isArray(value)) return value;
+        if (
+          value &&
+          typeof value === "object" &&
+          Array.isArray((value as { documents?: unknown[] }).documents)
+        )
+          return (value as { documents: unknown[] }).documents;
+        throw new Error("MCP_CONTRACT_RESULT_NOT_A_LIST");
+      });
     },
     contractAgent,
     parseContractAgent: (value) => ContractAgentResultSchema.parse(value),

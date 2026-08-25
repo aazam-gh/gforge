@@ -13,6 +13,7 @@
     "@workeros/db": "workspace:*",
     "@workeros/operations": "workspace:*",
     "@workeros/trueforge": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "drizzle-orm": "^0.38.3",
     "next": "^15.1.0",
     "react": "^19.0.0",

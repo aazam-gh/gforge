@@ -14,6 +14,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.30.0
+        version: 1.30.0(zod@3.25.76)
       '@tailwindcss/postcss':
         specifier: ^4.1.12
         version: 4.3.3

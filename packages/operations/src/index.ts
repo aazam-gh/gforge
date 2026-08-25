@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import {
   ApprovedBillingCorrectionRequestSchema,
   BillingCorrectionSchema,
@@ -234,22 +234,31 @@ export async function decideApproval(
   if (!existing) throw new Error("APPROVAL_ALREADY_DECIDED_OR_NOT_FOUND");
   if (existing.decision !== "pending" && existing.decision !== decision)
     throw new Error("APPROVAL_ALREADY_DECIDED_OR_NOT_FOUND");
-  const approval =
-    existing.decision === "pending"
-      ? (
-          await db()
-            .update(approvals)
-            .set({ decision, decidedBy, updatedAt: new Date() })
-            .where(
-              and(
-                eq(approvals.id, approvalId),
-                eq(approvals.decision, "pending"),
-              ),
-            )
-            .returning()
-        )[0]
-      : existing;
-  if (!approval) return decideApproval(approvalId, decision, decidedBy);
+  const now = new Date();
+  let approval = existing;
+  if (existing.decision === "pending") {
+    approval = (
+      await db()
+        .update(approvals)
+        .set({ decision, decidedBy, updatedAt: now })
+        .where(
+          and(
+            eq(approvals.id, approvalId),
+            eq(approvals.decision, "pending"),
+            gt(approvals.expiresAt, now),
+          ),
+        )
+        .returning()
+    )[0];
+    if (!approval)
+      throw new Error(
+        existing.expiresAt <= now
+          ? "APPROVAL_EXPIRED"
+          : "APPROVAL_ALREADY_DECIDED_OR_NOT_FOUND",
+      );
+  } else if (existing.expiresAt <= now) {
+    throw new Error("APPROVAL_EXPIRED");
+  }
   await appendCaseEventOnce(
     approval.caseId,
     decision === "approved" ? "approval.granted" : "approval.rejected",
@@ -311,6 +320,8 @@ export async function updateBillingTerms(input: BillingCorrection) {
           .where(eq(cases.id, correction.caseId));
         return { caseId: correction.caseId, billing: approvedAfter };
       }
+      const now = new Date();
+      if (approval.expiresAt <= now) throw new Error("APPROVAL_EXPIRED");
       if (!sameBillingTerms(current.terms, correction.before))
         throw new Error("BILLING_STATE_CHANGED_SINCE_PROPOSAL");
       await tx
@@ -321,10 +332,20 @@ export async function updateBillingTerms(input: BillingCorrection) {
           updatedAt: new Date(),
         })
         .where(eq(billingStates.accountId, correction.accountId));
-      await tx
+      const consumed = await tx
         .update(approvals)
         .set({ consumedAt: new Date(), updatedAt: new Date() })
-        .where(eq(approvals.id, correction.approvalId));
+        .where(
+          and(
+            eq(approvals.id, correction.approvalId),
+            eq(approvals.decision, "approved"),
+            isNull(approvals.consumedAt),
+            gt(approvals.expiresAt, now),
+          ),
+        )
+        .returning({ id: approvals.id });
+      if (consumed.length !== 1)
+        throw new Error("APPROVAL_EXPIRED_OR_ALREADY_CONSUMED");
       await tx
         .update(cases)
         .set({ status: "verifying", updatedAt: new Date() })
