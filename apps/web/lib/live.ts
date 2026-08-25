@@ -79,7 +79,7 @@ export async function startLiveAcmeInvestigation() {
   const adapter = new TrueForgeAdapter();
   if (adapter.state !== "connected")
     throw new Error(
-      "TRUEFORGE_UNAVAILABLE: configure TRUEFORGE_BASE_URL, TRUEFORGE_TOKEN, and TRUEFORGE_AGENT_NAME",
+      "TRUEFORGE_UNAVAILABLE: configure TRUEFORGE_BASE_URL and TRUEFORGE_AGENT_NAME; add TRUEFORGE_TOKEN only when the tenant requires authentication",
     );
   return startAcmeGoldenPath(accountId, {
     trueforge: adapter,
@@ -89,7 +89,15 @@ export async function startLiveAcmeInvestigation() {
         mcpCall("get_crm_state", id),
         mcpCall("get_billing_state", id),
       ]);
-      return mcpCall("get_contract", id);
+      const value = await mcpCall<unknown>("get_contract", id);
+      if (Array.isArray(value)) return value;
+      if (
+        value &&
+        typeof value === "object" &&
+        Array.isArray((value as { documents?: unknown[] }).documents)
+      )
+        return (value as { documents: unknown[] }).documents;
+      throw new Error("MCP_CONTRACT_RESULT_NOT_A_LIST");
     },
     contractAgent,
     parseContractAgent: (value) => ContractAgentResultSchema.parse(value),

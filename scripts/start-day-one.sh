@@ -4,7 +4,7 @@ set -euo pipefail
 # Starts the Day One UI and MCP against the isolated Cloud SQL runtime database.
 # The generated database password is kept in this process environment only.
 
-for required in TRUEFORGE_BASE_URL TRUEFORGE_TOKEN TRUEFORGE_AGENT_NAME; do
+for required in TRUEFORGE_BASE_URL TRUEFORGE_AGENT_NAME; do
   if [[ -z "${!required:-}" ]]; then
     echo "$required must be set to run the live supervised workflow" >&2
     exit 1

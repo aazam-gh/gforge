@@ -24,6 +24,21 @@ import {
 } from "@workeros/domain";
 import { assertApprovedWrite } from "@workeros/policy";
 
+function sameBillingTerms(left: unknown, right: unknown) {
+  const a = BillingTermsSchema.parse(left);
+  const b = BillingTermsSchema.parse(right);
+  return (
+    a.platformFeeCents === b.platformFeeCents &&
+    a.discountBps === b.discountBps &&
+    a.activeServices.length === b.activeServices.length &&
+    a.activeServices.every(
+      (service, index) =>
+        service.serviceId === b.activeServices[index]?.serviceId &&
+        service.annualFeeCents === b.activeServices[index]?.annualFeeCents,
+    )
+  );
+}
+
 export async function readAccount(accountId: string) {
   const value = await db().query.accounts.findFirst({
     where: eq(accounts.id, accountId),
@@ -288,7 +303,7 @@ export async function updateBillingTerms(input: BillingCorrection) {
       });
       if (!current) throw new Error("BILLING_STATE_NOT_FOUND");
       if (approval.consumedAt) {
-        if (JSON.stringify(current.terms) !== JSON.stringify(approvedAfter))
+        if (!sameBillingTerms(current.terms, approvedAfter))
           throw new Error("CONSUMED_APPROVAL_STATE_MISMATCH");
         await tx
           .update(cases)
@@ -296,7 +311,7 @@ export async function updateBillingTerms(input: BillingCorrection) {
           .where(eq(cases.id, correction.caseId));
         return { caseId: correction.caseId, billing: approvedAfter };
       }
-      if (JSON.stringify(current.terms) !== JSON.stringify(correction.before))
+      if (!sameBillingTerms(current.terms, correction.before))
         throw new Error("BILLING_STATE_CHANGED_SINCE_PROPOSAL");
       await tx
         .update(billingStates)

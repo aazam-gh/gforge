@@ -37,7 +37,9 @@ export default async function Approvals() {
             <Lock size={17} color="var(--signal)" />
             <div>
               <div className="eyebrow" style={{ marginBottom: 8 }}>
-                pending decision · update_billing_terms
+                {workflow?.approval?.decision === "approved"
+                  ? "approved · resume update_billing_terms"
+                  : "pending decision · update_billing_terms"}
               </div>
               <h2>Bring Acme Global billing into agreement</h2>
             </div>
@@ -91,8 +93,9 @@ export default async function Approvals() {
           >
             Inspect evidence <ArrowRight size={14} />
           </Link>
-          {workflow?.currentCase.status === "waiting_for_approval" &&
-          workflow.approval?.decision === "pending" ? (
+          {workflow &&
+          workflow.currentCase.status !== "resolved" &&
+          workflow?.approval?.decision !== "rejected" ? (
             <form action={approveAcmeAction}>
               <input
                 type="hidden"

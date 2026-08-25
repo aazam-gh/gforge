@@ -81,8 +81,8 @@ export type SupervisorDependencies = {
 };
 
 const ids = () => {
-  const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  return { approvalId: `approval-${suffix}`, idempotencyKey: `acme-${suffix}` };
+  const approvalId = crypto.randomUUID();
+  return { approvalId, idempotencyKey: `acme-${approvalId}` };
 };
 
 /** Starts the governed investigation and deliberately returns before any billing write. */

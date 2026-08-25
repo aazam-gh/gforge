@@ -9,6 +9,7 @@ import {
 import { acmeSnapshot, dollars } from "../../../lib/acme";
 import { startAcmeAction } from "../../actions";
 import { acmeWorkflow } from "../../../lib/workflow";
+import { annualBillingValue } from "@workeros/domain";
 export const dynamic = "force-dynamic";
 export default async function CaseDetail() {
   const snapshot = await acmeSnapshot();
@@ -24,6 +25,9 @@ export default async function CaseDetail() {
       </div>
     );
   const expected = snapshot.expected;
+  const billing = snapshot.billing;
+  const crm = snapshot.crm;
+  const resolved = workflow?.currentCase.status === "resolved";
   return (
     <div className="page">
       <Link
@@ -43,7 +47,9 @@ export default async function CaseDetail() {
           <div className="case-id">ACME GLOBAL · EFFECTIVE 2026-07-01</div>
           <h1>Commercial change assurance</h1>
           <p className="subtitle">
-            Amendment #3 is governing; billing has not adopted its terms.
+            {resolved
+              ? "Amendment #3 is governing and billing is verified against its terms."
+              : "Amendment #3 is governing; billing has not adopted its terms."}
           </p>
         </div>
         <form action={startAcmeAction}>
@@ -101,9 +107,9 @@ export default async function CaseDetail() {
             <ShieldCheck size={16} color="var(--green)" />
           </div>
           <p className="agent-result">
-            {dollars(expected.platformFeeCents)} platform
+            {dollars(crm.platformFeeCents)} platform
             <br />
-            0% discount · Premium active
+            {crm.discountBps / 100}% discount · Premium active
           </p>
           <footer>
             <ShieldCheck size={12} /> operational state
@@ -115,12 +121,16 @@ export default async function CaseDetail() {
             <CircleAlert size={16} color="var(--signal)" />
           </div>
           <p className="agent-result warn">
-            {dollars(snapshot.billing.platformFeeCents)} platform
+            {dollars(billing.platformFeeCents)} platform
             <br />
-            15% discount · Premium missing
+            {billing.discountBps / 100}% discount ·{" "}
+            {billing.activeServices.length
+              ? "Premium active"
+              : "Premium missing"}
           </p>
           <footer>
-            <CircleAlert size={12} /> drift detected
+            <CircleAlert size={12} />
+            {resolved ? "verified state" : "drift detected"}
           </footer>
         </div>
       </div>
@@ -142,13 +152,7 @@ export default async function CaseDetail() {
               "Expected annual billing",
               dollars(expected.expectedAnnualValueCents),
             ],
-            [
-              "Current annual billing",
-              dollars(
-                expected.expectedAnnualValueCents -
-                  snapshot.annualizedLeakageCents,
-              ),
-            ],
+            ["Current annual billing", dollars(annualBillingValue(billing))],
             ["Annualized impact", dollars(snapshot.annualizedLeakageCents)],
             ["Governing amendment", "Amendment #3 · 2026-07-01"],
             [
@@ -168,7 +172,7 @@ export default async function CaseDetail() {
           <div className="section-head">
             <div>
               <div className="eyebrow" style={{ marginBottom: 8 }}>
-                proposed correction
+                {resolved ? "verified billing state" : "proposed correction"}
               </div>
               <h2>Update billing terms</h2>
             </div>
@@ -186,9 +190,9 @@ export default async function CaseDetail() {
                 margin: "11px 0 18px",
               }}
             >
-              Platform {dollars(snapshot.billing.platformFeeCents)} →{" "}
-              {dollars(expected.platformFeeCents)}; discount 15% → 0%; add
-              Premium Data Processing at $48,000/year.
+              {resolved
+                ? "Billing now matches the approved commercial terms: 0% discount with Premium Data Processing active."
+                : `Platform ${dollars(billing.platformFeeCents)} → ${dollars(expected.platformFeeCents)}; discount ${billing.discountBps / 100}% → ${expected.discountBps / 100}%; add Premium Data Processing at $48,000/year.`}
             </p>
             <Link
               href="/approvals"
