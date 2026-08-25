@@ -10,7 +10,7 @@ The runnable harness uses a dedicated `workeros_runtime` user and its isolated `
 
 ## Vertex ADK
 
-Run `gcloud auth application-default login`, then export `GOOGLE_CLOUD_PROJECT=workeros-demo-20260825`, `GOOGLE_CLOUD_LOCATION=us-central1`, and `GOOGLE_GENAI_USE_VERTEXAI=true`. Start the agent with `pnpm adk:dev`. The Contract Agent uses ADK and validates its structured response before WorkerOS accepts evidence. Model Garden lists `gemini-3.6-flash` as serverless, but live ADC calls in `us-central1` returned `404 NOT_FOUND` for it as well as `gemini-3.5-flash` and `gemini-3-flash-preview`; use a model only after a live call succeeds in the required region. The service surfaces this as an execution failure and never substitutes output.
+Run `gcloud auth application-default login`, then export `GOOGLE_CLOUD_PROJECT=workeros-demo-20260825`, `GOOGLE_CLOUD_LOCATION=global`, and `GOOGLE_GENAI_USE_VERTEXAI=true`. Start the agent with `pnpm adk:dev`. The Contract Agent uses Vertex AI's `gemini-3-flash-preview` and ADK's native output schema to validate structured output before WorkerOS accepts evidence. This combination completed a live ADC smoke test on 2026-08-25. The former `us-central1` configuration returned `404 NOT_FOUND` for `gemini-3.5-flash`, `gemini-3.6-flash`, and `gemini-3-flash-preview`; do not revert to it without a new live test. The service surfaces execution and schema failures explicitly and never substitutes output.
 
 ## TrueForge
 

@@ -9,7 +9,7 @@ from google.adk.sessions import InMemorySessionService
 from google.genai import types
 from pydantic import BaseModel, Field, ValidationError
 
-MODEL = os.getenv('WORKEROS_GEMINI_MODEL', 'gemini-3.5-flash')
+MODEL = os.getenv('WORKEROS_GEMINI_MODEL', 'gemini-3-flash-preview')
 APP_NAME = 'workeros_contract_assurance'
 class EvidenceReference(BaseModel):
     document_id: str
@@ -26,7 +26,12 @@ class SpecialistResult(BaseModel):
     follow_up_required: bool
     error: str | None = None
 CONTRACT_INSTRUCTION = """You are WorkerOS's Contract Agent. Extract only commercial facts explicitly present in supplied governing agreement text. Return JSON matching the requested schema. Preserve document IDs, clause IDs, and effective dates. Never calculate invoices, decide precedence, or propose any billing mutation. If a term is missing, contradictory, or unclear, return status 'ambiguous', describe conflicts, and set follow_up_required true."""
-contract_agent = Agent(name='contract_agent', model=Gemini(model=MODEL, retry_options=types.HttpRetryOptions(attempts=2)), instruction=CONTRACT_INSTRUCTION)
+contract_agent = Agent(
+    name='contract_agent',
+    model=Gemini(model=MODEL, retry_options=types.HttpRetryOptions(attempts=2)),
+    instruction=CONTRACT_INSTRUCTION,
+    output_schema=SpecialistResult,
+)
 def vertex_configured() -> bool:
     return bool(os.getenv('GOOGLE_CLOUD_PROJECT') and os.getenv('GOOGLE_CLOUD_LOCATION') and os.getenv('GOOGLE_GENAI_USE_VERTEXAI', '').lower() == 'true')
 async def analyze_contract(documents: list[dict]) -> SpecialistResult:
