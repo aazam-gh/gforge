@@ -17,6 +17,7 @@
     "db:migrate": "pnpm --filter @workeros/db migrate",
     "db:seed": "pnpm --filter @workeros/db seed",
     "mcp:dev": "pnpm --filter @workeros/enterprise-mcp dev",
+    "mcp:cloud": "bash scripts/start-cloud-mcp.sh",
     "adk:dev": "cd services/adk-agents && uvicorn app:app --reload --port 8001"
   },
   "devDependencies": {

@@ -4,9 +4,9 @@ The generated GCP project is `workeros-demo-20260825` in `us-central1`. Vertex A
 
 ## Cloud SQL
 
-The Cloud SQL free-trial instance is live: `workeros-postgres` (PostgreSQL 18.4) in `us-central1`, with database `workeros`. Its connection name is `workeros-demo-20260825:us-central1:workeros-postgres`. The Drizzle migration and synthetic Acme seed were applied through Cloud SQL Studio on 2026-08-25. Keep the generated `postgres` password outside this repository.
+The Cloud SQL free-trial instance is live: `workeros-postgres` (PostgreSQL 18.4) in `us-central1`. Its connection name is `workeros-demo-20260825:us-central1:workeros-postgres`. The initial Drizzle migration and synthetic Acme seed were applied through Cloud SQL Studio on 2026-08-25. Keep the generated `postgres` password outside this repository.
 
-For local development, install and run the Cloud SQL Auth Proxy with that connection name, then set `DATABASE_URL=postgres://postgres:YOUR_PASSWORD@127.0.0.1:5432/workeros` in an untracked `.env.local`. Do not use the public IP in application configuration. Future schema changes should use `pnpm db:migrate`; reseeding is safe with `pnpm db:seed`.
+The runnable harness uses a dedicated `workeros_runtime` user and its isolated `workeros_runtime` database, leaving the original `postgres` user and `workeros` database untouched. Run `pnpm mcp:cloud` to rotate the dedicated user's generated password in Cloud SQL, start the Auth Proxy if it is not already listening on port 5432, and launch MCP. The password remains only in the MCP process environment and is never written to disk. Do not use the public IP in application configuration. Future schema changes should use `pnpm db:migrate`; reseeding is safe with `pnpm db:seed`.
 
 ## Vertex ADK
 
