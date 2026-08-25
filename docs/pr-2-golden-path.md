@@ -18,6 +18,7 @@ The database operations and ADK/MCP clients are injected at this boundary so the
 - ADK Pydantic output now serializes the camelCase contract expected by WorkerOS while accepting Python field names.
 - Case event sequence allocation uses a PostgreSQL transaction advisory lock, preventing concurrent appenders from selecting the same sequence.
 - Billing mutation validation loads the Case and proposal server-side and rejects account, case, before/after term, impact, or idempotency mismatches.
+- Approval, mutation, and verification stages are replay-safe: retries reuse persisted decisions/outcomes, restore Case status, and append missing timeline events without repeating side effects.
 
 ## Review and test evidence
 

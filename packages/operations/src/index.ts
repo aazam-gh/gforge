@@ -95,6 +95,22 @@ export async function appendCaseEvent(
   });
 }
 
+async function appendCaseEventOnce(
+  caseId: string,
+  type: string,
+  actor: string,
+  payload: unknown,
+) {
+  const existing = await db().query.caseEvents.findFirst({
+    where: and(eq(caseEvents.caseId, caseId), eq(caseEvents.type, type)),
+  });
+  if (existing) return existing;
+  await appendCaseEvent(caseId, type, actor, payload);
+  return db().query.caseEvents.findFirst({
+    where: and(eq(caseEvents.caseId, caseId), eq(caseEvents.type, type)),
+  });
+}
+
 export async function createCommercialChangeCase(
   accountId: string,
   trueforgeSessionId?: string,
@@ -197,13 +213,29 @@ export async function decideApproval(
   decision: "approved" | "rejected",
   decidedBy = "revenue-ops-demo",
 ) {
-  const [approval] = await db()
-    .update(approvals)
-    .set({ decision, decidedBy, updatedAt: new Date() })
-    .where(and(eq(approvals.id, approvalId), eq(approvals.decision, "pending")))
-    .returning();
-  if (!approval) throw new Error("APPROVAL_ALREADY_DECIDED_OR_NOT_FOUND");
-  await appendCaseEvent(
+  const existing = await db().query.approvals.findFirst({
+    where: eq(approvals.id, approvalId),
+  });
+  if (!existing) throw new Error("APPROVAL_ALREADY_DECIDED_OR_NOT_FOUND");
+  if (existing.decision !== "pending" && existing.decision !== decision)
+    throw new Error("APPROVAL_ALREADY_DECIDED_OR_NOT_FOUND");
+  const approval =
+    existing.decision === "pending"
+      ? (
+          await db()
+            .update(approvals)
+            .set({ decision, decidedBy, updatedAt: new Date() })
+            .where(
+              and(
+                eq(approvals.id, approvalId),
+                eq(approvals.decision, "pending"),
+              ),
+            )
+            .returning()
+        )[0]
+      : existing;
+  if (!approval) return decideApproval(approvalId, decision, decidedBy);
+  await appendCaseEventOnce(
     approval.caseId,
     decision === "approved" ? "approval.granted" : "approval.rejected",
     decidedBy,
@@ -224,7 +256,8 @@ export async function updateBillingTerms(input: BillingCorrection) {
       const approval = await tx.query.approvals.findFirst({
         where: eq(approvals.id, correction.approvalId),
       });
-      assertApprovedWrite("update_billing_terms", approval);
+      if (!approval || approval.decision !== "approved")
+        assertApprovedWrite("update_billing_terms", approval);
       if (!approval || approval.caseId !== correction.caseId)
         throw new Error("APPROVAL_CASE_MISMATCH");
       const currentCase = await tx.query.cases.findFirst({
@@ -254,6 +287,15 @@ export async function updateBillingTerms(input: BillingCorrection) {
         where: eq(billingStates.accountId, correction.accountId),
       });
       if (!current) throw new Error("BILLING_STATE_NOT_FOUND");
+      if (approval.consumedAt) {
+        if (JSON.stringify(current.terms) !== JSON.stringify(approvedAfter))
+          throw new Error("CONSUMED_APPROVAL_STATE_MISMATCH");
+        await tx
+          .update(cases)
+          .set({ status: "verifying", updatedAt: new Date() })
+          .where(eq(cases.id, correction.caseId));
+        return { caseId: correction.caseId, billing: approvedAfter };
+      }
       if (JSON.stringify(current.terms) !== JSON.stringify(correction.before))
         throw new Error("BILLING_STATE_CHANGED_SINCE_PROPOSAL");
       await tx
@@ -275,7 +317,7 @@ export async function updateBillingTerms(input: BillingCorrection) {
       return { caseId: correction.caseId, billing: correction.after };
     })
     .then(async (result) => {
-      await appendCaseEvent(
+      await appendCaseEventOnce(
         result.caseId,
         "billing.mutation.completed",
         "enterprise_mcp",
@@ -318,6 +360,30 @@ export async function verifyBillingCorrection(caseId: string) {
     where: eq(cases.id, caseId),
   });
   if (!currentCase) throw new Error("CASE_NOT_FOUND");
+  const existing = await db().query.verificationOutcomes.findFirst({
+    where: eq(verificationOutcomes.caseId, caseId),
+  });
+  if (existing) {
+    const passed = existing.passed === "true";
+    await db()
+      .update(cases)
+      .set({ status: passed ? "resolved" : "failed", updatedAt: new Date() })
+      .where(eq(cases.id, caseId));
+    await appendCaseEventOnce(
+      caseId,
+      passed ? "verification.passed" : "verification.failed",
+      "revenue_integrity_supervisor",
+      { recovered: true },
+    );
+    return {
+      passed,
+      reconciliation: {
+        billing: BillingTermsSchema.parse(existing.observed),
+        expected: BillingTermsSchema.parse(existing.expected),
+        correctionRequired: !passed,
+      },
+    };
+  }
   const reconciliation = await compileAcmeReconciliation(currentCase.accountId);
   const passed = !reconciliation.correctionRequired;
   await db()
@@ -336,7 +402,7 @@ export async function verifyBillingCorrection(caseId: string) {
     .update(cases)
     .set({ status: passed ? "resolved" : "failed", updatedAt: new Date() })
     .where(eq(cases.id, caseId));
-  await appendCaseEvent(
+  await appendCaseEventOnce(
     caseId,
     passed ? "verification.passed" : "verification.failed",
     "revenue_integrity_supervisor",
