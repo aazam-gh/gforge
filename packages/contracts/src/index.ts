@@ -94,6 +94,9 @@ export const BillingCorrectionSchema = z.object({
   after: BillingTermsSchema,
   annualizedImpactCents: z.number().int().positive(),
 });
+export const ApprovedBillingCorrectionRequestSchema = z
+  .object({ approvalId: z.string().min(1) })
+  .strict();
 export const ApprovalDecisionSchema = z.enum(["approved", "rejected"]);
 
 export type CaseStatus = z.infer<typeof CaseStatus>;
@@ -104,3 +107,6 @@ export type CommercialState = z.infer<typeof CommercialStateSchema>;
 export type ContractAgentResult = z.infer<typeof ContractAgentResultSchema>;
 export type BillingTerms = z.infer<typeof BillingTermsSchema>;
 export type BillingCorrection = z.infer<typeof BillingCorrectionSchema>;
+export type ApprovedBillingCorrectionRequest = z.infer<
+  typeof ApprovedBillingCorrectionRequestSchema
+>;
