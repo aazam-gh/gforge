@@ -41,6 +41,15 @@ def _disable_billing():
     )
 
 
+def _attempt_action(name, action, failures):
+    try:
+        action()
+        print(f"Budget guard action succeeded: {name}")
+    except Exception as error:  # noqa: BLE001 - all actions must be attempted
+        failures.append((name, error))
+        print(f"Budget guard action failed: {name}: {error}")
+
+
 @functions_framework.cloud_event
 def enforce_budget(cloud_event):
     payload = _payload(cloud_event)
@@ -51,8 +60,15 @@ def enforce_budget(cloud_event):
         return
 
     print(f"Budget threshold reached: cost={cost} budget={budget}")
-    _stop_cloud_sql()
-    _disable_vertex_ai()
+    failures = []
+    _attempt_action("Cloud SQL shutdown", _stop_cloud_sql, failures)
+    _attempt_action("Vertex AI disablement", _disable_vertex_ai, failures)
     if os.environ.get("DISABLE_PROJECT_BILLING", "true").lower() == "true":
-        _disable_billing()
+        _attempt_action("project billing disablement", _disable_billing, failures)
+
+    if failures:
+        details = "; ".join(f"{name}: {error}" for name, error in failures)
+        raise RuntimeError(f"Budget guard actions failed: {details}")
+
+    if os.environ.get("DISABLE_PROJECT_BILLING", "true").lower() == "true":
         print("Project billing disabled")
