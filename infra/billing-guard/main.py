@@ -11,6 +11,8 @@ PROJECT_ID = os.environ["GOOGLE_CLOUD_PROJECT"]
 INSTANCE_ID = os.environ.get("CLOUD_SQL_INSTANCE", "workeros-postgres")
 EXPECTED_BILLING_ACCOUNT_ID = os.environ["EXPECTED_BILLING_ACCOUNT_ID"]
 EXPECTED_BUDGET_ID = os.environ["EXPECTED_BUDGET_ID"]
+EXPECTED_BUDGET_AMOUNT = float(os.environ["EXPECTED_BUDGET_AMOUNT"])
+EXPECTED_BUDGET_CURRENCY = os.environ.get("EXPECTED_BUDGET_CURRENCY", "INR")
 
 
 def _validate_notification(event):
@@ -67,9 +69,18 @@ def enforce_budget(cloud_event):
     _validate_notification(cloud_event)
     payload = _payload(cloud_event)
     cost = float(payload.get("costAmount", 0))
-    budget = float(payload.get("budgetAmount", 0))
+    payload_currency = payload.get("currencyCode")
+    if payload_currency and payload_currency != EXPECTED_BUDGET_CURRENCY:
+        raise ValueError("Budget notification currency does not match")
+
+    # Cloud Billing notifications can be queued before a budget edit and may
+    # carry the old budgetAmount. The configured value is authoritative.
+    budget = EXPECTED_BUDGET_AMOUNT
     if budget <= 0 or cost < budget:
-        print(f"Budget guard inactive: cost={cost} budget={budget}")
+        print(
+            f"Budget guard inactive: cost={cost} budget={budget} "
+            f"currency={EXPECTED_BUDGET_CURRENCY}"
+        )
         return
 
     print(f"Budget threshold reached: cost={cost} budget={budget}")
