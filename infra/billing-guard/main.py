@@ -9,6 +9,18 @@ from googleapiclient.discovery import build
 
 PROJECT_ID = os.environ["GOOGLE_CLOUD_PROJECT"]
 INSTANCE_ID = os.environ.get("CLOUD_SQL_INSTANCE", "workeros-postgres")
+EXPECTED_BILLING_ACCOUNT_ID = os.environ["EXPECTED_BILLING_ACCOUNT_ID"]
+EXPECTED_BUDGET_ID = os.environ["EXPECTED_BUDGET_ID"]
+
+
+def _validate_notification(event):
+    attributes = event.data["message"].get("attributes", {})
+    billing_account_id = attributes.get("billingAccountId")
+    budget_id = attributes.get("budgetId")
+    if billing_account_id != EXPECTED_BILLING_ACCOUNT_ID:
+        raise ValueError("Budget notification billing account does not match")
+    if budget_id != EXPECTED_BUDGET_ID:
+        raise ValueError("Budget notification budget does not match")
 
 
 def _payload(event):
@@ -52,6 +64,7 @@ def _attempt_action(name, action, failures):
 
 @functions_framework.cloud_event
 def enforce_budget(cloud_event):
+    _validate_notification(cloud_event)
     payload = _payload(cloud_event)
     cost = float(payload.get("costAmount", 0))
     budget = float(payload.get("budgetAmount", 0))
