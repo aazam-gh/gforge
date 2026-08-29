@@ -102,11 +102,19 @@ export async function startAcmeGoldenPath(
   );
   if (!sessionId) throw new Error("TRUEFORGE_SESSION_ID_MISSING");
 
-  await dependencies.trueforge.submitTurn(sessionId, {
+  const trueforgeTurn = await dependencies.trueforge.submitTurn(sessionId, {
     action: "commercial_change_assurance",
     accountId,
     approvalBoundary: "pause_before_update_billing_terms",
   });
+  if (
+    trueforgeTurn &&
+    typeof trueforgeTurn === "object" &&
+    "requiredActions" in trueforgeTurn &&
+    Array.isArray(trueforgeTurn.requiredActions) &&
+    trueforgeTurn.requiredActions.length > 0
+  )
+    throw new Error("TRUEFORGE_ACTION_REQUIRED");
   const documents = await dependencies.readContract(accountId);
   const specialist = dependencies.parseContractAgent(
     await dependencies.contractAgent(documents),

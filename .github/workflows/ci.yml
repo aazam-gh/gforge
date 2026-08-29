@@ -3,21 +3,38 @@ on: [push, pull_request]
 jobs:
   typescript:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/workeros_test
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: workeros_test
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d workeros_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
-        with: {version: 9.15.0}
+        with: { version: 9.15.0 }
       - uses: actions/setup-node@v4
-        with: {node-version: 22, cache: pnpm}
+        with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile=false
       - run: pnpm build
+      - run: pnpm db:migrate
+      - run: pnpm db:seed
       - run: pnpm test
   python:
     runs-on: ubuntu-latest
-    defaults: {run: {working-directory: services/adk-agents}}
+    defaults: { run: { working-directory: services/adk-agents } }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: {python-version: '3.11'}
+        with: { python-version: "3.11" }
       - run: pip install -e '.[test]'
       - run: pytest

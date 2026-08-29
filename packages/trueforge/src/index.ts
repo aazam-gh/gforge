@@ -37,9 +37,13 @@ export class TrueForgeAdapter {
     return this.unwrap(await response);
   }
   async submitTurn(sessionId: string, input: Record<string, unknown>) {
-    return this.configured().sessions.createTurnStream(sessionId, {
-      input: [{ type: "user.message", content: JSON.stringify(input) }],
-    });
+    const stream = await this.configured().sessions.createTurnStream(
+      sessionId,
+      {
+        input: [{ type: "user.message", content: JSON.stringify(input) }],
+      },
+    );
+    return consumeTurnStream(stream);
   }
   async subscribeToEvents(sessionId: string, turnId: string) {
     return this.configured().sessions.subscribeToTurn(sessionId, turnId);
@@ -53,6 +57,53 @@ export class TrueForgeAdapter {
   mapEventToCaseEvent(event: unknown) {
     return { type: "trueforge.event", actor: "trueforge", payload: event };
   }
+}
+
+export async function consumeTurnStream(stream: AsyncIterable<unknown>) {
+  const events: unknown[] = [];
+  let turnId = "";
+  let terminal = false;
+  let requiredActions: unknown[] = [];
+  for await (const value of stream) {
+    if (!value || typeof value !== "object")
+      throw new Error("TRUEFORGE_EVENT_INVALID");
+    const event = value as {
+      type?: string;
+      turnId?: string;
+      state?: {
+        status?: string;
+        error?: string;
+        message?: string;
+        reason?: string;
+        requiredActions?: unknown[];
+      };
+    };
+    events.push(event);
+    if (event.type === "turn.created") {
+      if (!event.turnId) throw new Error("TRUEFORGE_TURN_ID_MISSING");
+      turnId = event.turnId;
+    }
+    if (event.type === "thread.done" && event.state?.status === "error")
+      throw new Error(
+        `TRUEFORGE_THREAD_FAILED: ${event.state.error ?? "unknown"}`,
+      );
+    if (event.type === "turn.done") {
+      if (!event.state) throw new Error("TRUEFORGE_TURN_STATE_MISSING");
+      if (event.state.status === "error")
+        throw new Error(
+          `TRUEFORGE_TURN_FAILED: ${event.state.message ?? "unknown"}`,
+        );
+      if (event.state.status === "cancelled")
+        throw new Error(
+          `TRUEFORGE_TURN_CANCELLED: ${event.state.reason ?? "unknown"}`,
+        );
+      requiredActions = event.state.requiredActions ?? [];
+      terminal = true;
+    }
+  }
+  if (!turnId) throw new Error("TRUEFORGE_TURN_ID_MISSING");
+  if (!terminal) throw new Error("TRUEFORGE_TURN_TERMINAL_EVENT_MISSING");
+  return { turnId, events, requiredActions };
 }
 
 export * from "./golden-path";
