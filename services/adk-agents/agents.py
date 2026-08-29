@@ -9,7 +9,8 @@ from google.adk.sessions import InMemorySessionService
 from google.genai import types
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-MODEL = os.getenv('WORKEROS_GEMINI_MODEL', 'gemini-3-flash-preview')
+DEFAULT_MODEL = 'gemini-3.5-flash'
+MODEL = os.getenv('WORKEROS_GEMINI_MODEL', DEFAULT_MODEL)
 TIMEOUT_SECONDS = float(os.getenv('WORKEROS_ADK_TIMEOUT_SECONDS', '120'))
 APP_NAME = 'workeros_contract_assurance'
 class EvidenceReference(BaseModel):

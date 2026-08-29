@@ -58,13 +58,13 @@ This file records implementation reality. Allowed states are:
 
 ### Eligibility
 
-| Requirement                           | Status   | Evidence / blocker                                                                                                                                                                                                                                                                                                                              |
-| ------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Autonomous agent beyond a chat loop   | PARTIAL  | Persisted Case workflow, tools, approval, mutation, and verification exist; live complete execution is blocked.                                                                                                                                                                                                                                 |
-| Gemini 3.5 or newer                   | BLOCKED  | Code defaults to `gemini-3-flash-preview`, which does not establish 3.5+ eligibility. An [official Vertex AI sample](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/samples/googlegenaisdk-textgen-with-pdf) names `gemini-3.5-flash`; Vertex AI is currently disabled in the project and must be re-enabled for a real invocation. |
-| Google ADK                            | PARTIAL  | Real ADK `LlmAgent` and structured output boundary exist; eligible-model and deployment proof are missing.                                                                                                                                                                                                                                      |
-| Google Cloud infrastructure           | VERIFIED | Cloud SQL `workeros-postgres` was read on 2026-08-29 as `RUNNABLE`, PostgreSQL 18, `us-central1`; reproduce with the command in `docs/DEMO_EVIDENCE.md`.                                                                                                                                                                                        |
-| Application functions as demonstrated | BLOCKED  | No final demonstration has been recorded; current local services are stopped and external orchestration is not configured.                                                                                                                                                                                                                      |
+| Requirement                           | Status   | Evidence / blocker                                                                                                                                                                                                                 |
+| ------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Autonomous agent beyond a chat loop   | PARTIAL  | Persisted Case workflow, tools, approval, mutation, and verification exist; live complete execution is blocked.                                                                                                                    |
+| Gemini 3.5 or newer                   | VERIFIED | `services/adk-agents/agents.py` defaults to `gemini-3.5-flash`; on 2026-08-29 the Vertex-backed ADK endpoint in project `workeros-demo-20260825`, location `global`, returned HTTP 200 with five schema-valid Acme evidence facts. |
+| Google ADK                            | VERIFIED | A real ADK `LlmAgent` with native structured output completed the same controlled `gemini-3.5-flash` call. This verifies the Contract Agent boundary only, not Agent Runtime deployment or the complete workflow.                  |
+| Google Cloud infrastructure           | VERIFIED | Cloud SQL `workeros-postgres` was read on 2026-08-29 as `RUNNABLE`, PostgreSQL 18, `us-central1`; reproduce with the command in `docs/DEMO_EVIDENCE.md`.                                                                           |
+| Application functions as demonstrated | BLOCKED  | No final demonstration has been recorded; current local services are stopped and external orchestration is not configured.                                                                                                         |
 
 ### Primary judging criteria
 
@@ -94,10 +94,9 @@ This file records implementation reality. Allowed states are:
 
 ## Priority queue
 
-1. **P0:** Re-enable Vertex AI under the budget guard, invoke an accessible `gemini-3.5-flash` model through ADK, and capture the response metadata without secrets.
-2. **P0:** Configure the existing TrueForge tenant and prove one persistent session: MCP reads, Skill load, delegated ADK evidence, meaningful sandbox reconciliation, approval pause, reconnect, one write, reread, verification, and events.
-3. **P0:** Repeat the Acme run from a clean seed and capture all artifacts in `docs/DEMO_EVIDENCE.md`.
-4. **P1:** Add the smallest real Google enterprise fleet integrations in this order: Runtime, Registry, Identity, Observability, Memory Bank, Gateway, Model Armor. Mark unavailable services `BLOCKED` and continue.
-5. **P1:** Replace `/fleet` fixtures, add disposable-Postgres integration tests, and configure Qodo before further meaningful PRs.
+1. **P0:** Configure the existing TrueForge tenant and prove one persistent session: MCP reads, Skill load, delegated ADK evidence, meaningful sandbox reconciliation, approval pause, reconnect, one write, reread, verification, and events.
+2. **P0:** Repeat the Acme run from a clean seed and capture all artifacts in `docs/DEMO_EVIDENCE.md`.
+3. **P1:** Add the smallest real Google enterprise fleet integrations in this order: Runtime, Registry, Identity, Observability, Memory Bank, Gateway, Model Armor. Mark unavailable services `BLOCKED` and continue.
+4. **P1:** Replace `/fleet` fixtures, add disposable-Postgres integration tests, and configure Qodo before further meaningful PRs.
 
 Bonus models, additional domains, graph infrastructure, a workflow builder, production SSO, and decorative dashboards remain deferred until the shared golden path is verified.

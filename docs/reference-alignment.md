@@ -22,7 +22,7 @@ Implemented foundation:
 
 The following must not be described as live or complete: an authenticated TrueForge golden run, Skill-load proof, sandbox/Code Mode reconciliation, a TrueForge Evidence QA subagent, live event persistence, Google Agent Runtime/Registry/Memory Bank/Identity/Gateway/Model Armor, OpenTelemetry export, Secret Manager, Qodo installation/review history, or a repeatable captured end-to-end run.
 
-Cloud SQL is currently running in `us-central1`, but local services were stopped at the 2026-08-29 audit. Vertex AI was disabled, and the configured `gemini-3-flash-preview` does not prove the stated Gemini 3.5+ eligibility requirement. The historical ADK smoke test remains useful engineering evidence but is not current eligibility proof. `/fleet` still contains fixture-driven metrics and specialist availability claims.
+Cloud SQL is currently running in `us-central1`. Vertex AI was re-enabled on 2026-08-29 under the active ₹500 budget guard, and the ADK Contract Agent completed a schema-valid live call using `gemini-3.5-flash` through the `global` Vertex location. The web, MCP, and TrueForge services were not part of that model-only proof. `/fleet` still contains fixture-driven metrics and specialist availability claims.
 
 ## Vertical-slice acceptance
 

@@ -1,6 +1,6 @@
 # Commercial Change Assurance setup
 
-The generated GCP project is `workeros-demo-20260825` in `us-central1`. Cloud SQL is enabled. Vertex AI was disabled at the 2026-08-29 audit and must be re-enabled deliberately under the project budget controls before an ADK model call. This is synthetic demo data only.
+The generated GCP project is `workeros-demo-20260825` in `us-central1`. Cloud SQL and Vertex AI are enabled. Vertex was re-enabled deliberately on 2026-08-29 after confirming the ₹500 budget guard was active and current reported spend was ₹14.04. This is synthetic demo data only.
 
 ## Cloud SQL
 
@@ -10,7 +10,7 @@ The runnable harness uses a dedicated `workeros_runtime` user and its isolated `
 
 ## Vertex ADK
 
-After enabling Vertex AI, run `gcloud auth application-default login`, then export `GOOGLE_CLOUD_PROJECT=workeros-demo-20260825`, `GOOGLE_CLOUD_LOCATION=global`, and `GOOGLE_GENAI_USE_VERTEXAI=true`. Start the agent with `pnpm adk:dev`. The Contract Agent currently defaults to Vertex AI's `gemini-3-flash-preview` and uses ADK's native output schema to validate structured output before WorkerOS accepts evidence. That model completed a historical ADC smoke test on 2026-08-25, but it does **not** prove the hackathon's stated Gemini 3.5+ eligibility. An [official Vertex AI sample](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/samples/googlegenaisdk-textgen-with-pdf) currently names `gemini-3.5-flash`; do not change the model or claim eligibility until that exact accessible model is invoked successfully and recorded in `docs/DEMO_EVIDENCE.md`. The service surfaces execution and schema failures explicitly and never substitutes output.
+Run `gcloud auth application-default login`, then export `GOOGLE_CLOUD_PROJECT=workeros-demo-20260825`, `GOOGLE_CLOUD_LOCATION=global`, and `GOOGLE_GENAI_USE_VERTEXAI=true`. Start the agent with `pnpm adk:dev`. The Contract Agent defaults to Vertex AI's `gemini-3.5-flash` and uses ADK's native output schema to validate structured output before WorkerOS accepts evidence. On 2026-08-29 the real endpoint returned HTTP 200 with five schema-valid Acme evidence facts, confidence `1.0`, no conflicts, and no follow-up requirement. The service surfaces execution and schema failures explicitly and never substitutes output.
 
 ## TrueForge
 
