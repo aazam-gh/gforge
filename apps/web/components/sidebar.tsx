@@ -1,1 +1,56 @@
-import Link from 'next/link'; import {Activity,Bot,ClipboardList,LayoutGrid,Settings,ShieldCheck} from 'lucide-react'; export function Sidebar(){return <aside className="sidebar"><div className="logo"><span className="logo-mark">W</span><span>worker<span style={{color:'var(--signal)'}}>OS</span></span></div><nav className="nav"><Link href="/fleet" className="active"><LayoutGrid size={16}/><span>Fleet</span></Link><Link href="/cases"><ClipboardList size={16}/><span>Cases</span></Link><Link href="/approvals"><ShieldCheck size={16}/><span>Approvals <small style={{color:'var(--signal)',marginLeft:'auto'}}>01</small></span></Link><Link href="/fleet"><Bot size={16}/><span>Workers</span></Link><Link href="/fleet"><Activity size={16}/><span>Observability</span></Link></nav><div className="side-foot"><div className="eyebrow" style={{marginBottom:12}}>runtime</div><div className="pulse"><i className="dot"/> trueforge connected</div><div className="pulse" style={{color:'var(--muted)',marginTop:8}}><i className="dot"/> mcp / local</div><Settings size={15} color="var(--muted)" style={{marginTop:22}}/></div></aside>}
+import Link from "next/link";
+import {
+  Activity,
+  Bot,
+  ClipboardList,
+  LayoutGrid,
+  Settings,
+  ShieldCheck,
+} from "lucide-react";
+
+export function Sidebar() {
+  return (
+    <aside className="sidebar">
+      <div className="logo">
+        <span className="logo-mark">W</span>
+        <span>
+          worker<span style={{ color: "var(--signal)" }}>OS</span>
+        </span>
+      </div>
+      <nav className="nav">
+        <Link href="/fleet" className="active">
+          <LayoutGrid size={16} />
+          <span>Fleet</span>
+        </Link>
+        <Link href="/cases">
+          <ClipboardList size={16} />
+          <span>Cases</span>
+        </Link>
+        <Link href="/approvals">
+          <ShieldCheck size={16} />
+          <span>Approvals</span>
+        </Link>
+        <Link href="/fleet">
+          <Bot size={16} />
+          <span>Workers</span>
+        </Link>
+        <Link href="/fleet">
+          <Activity size={16} />
+          <span>Observability</span>
+        </Link>
+      </nav>
+      <div className="side-foot">
+        <div className="eyebrow" style={{ marginBottom: 12 }}>
+          runtime
+        </div>
+        <div className="pulse">
+          <i className="dot" /> status shown per run
+        </div>
+        <div className="pulse" style={{ color: "var(--muted)", marginTop: 8 }}>
+          <i className="dot" /> local development
+        </div>
+        <Settings size={15} color="var(--muted)" style={{ marginTop: 22 }} />
+      </div>
+    </aside>
+  );
+}

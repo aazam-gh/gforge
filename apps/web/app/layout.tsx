@@ -18,7 +18,7 @@ export default function RootLayout({
               <span className="eyebrow">workspace / acme operations</span>
               <div className="topbar-right">
                 <span className="pulse">
-                  <i className="dot" /> all systems nominal
+                  <i className="dot" /> development workspace
                 </span>
                 <div className="avatar">AM</div>
               </div>

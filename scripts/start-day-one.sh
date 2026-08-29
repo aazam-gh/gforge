@@ -11,6 +11,10 @@ for required in TRUEFORGE_BASE_URL TRUEFORGE_AGENT_NAME; do
   fi
 done
 
+if [[ "${TRUEFORGE_VERTEX_ADC:-false}" == "true" ]]; then
+  bash scripts/configure-local-trueforge-vertex.sh
+fi
+
 project_id="workeros-demo-20260825"
 instance_name="workeros-postgres"
 connection_name="${project_id}:us-central1:${instance_name}"
@@ -49,6 +53,13 @@ export WORKEROS_ADK_URL="${WORKEROS_ADK_URL:-http://127.0.0.1:8001}"
 export WORKEROS_APPROVER_ID="${WORKEROS_APPROVER_ID:-revenue-ops-demo}"
 export WORKEROS_APPROVER_WORKSPACE_ID="${WORKEROS_APPROVER_WORKSPACE_ID:-acme-operations}"
 export WORKEROS_APPROVER_ROLES="${WORKEROS_APPROVER_ROLES:-revenue_ops}"
+
+pnpm db:migrate
+if [[ "${WORKEROS_RESET_DEMO:-false}" == "true" ]]; then
+  # Acme is synthetic demo data. Resetting it restores the intentional
+  # $312,000 drift so the governed path can be demonstrated repeatedly.
+  pnpm db:seed
+fi
 
 if lsof -nP -iTCP:4000 -sTCP:LISTEN >/dev/null 2>&1; then
   echo "port 4000 is already in use; stop the existing MCP process before starting Day One" >&2

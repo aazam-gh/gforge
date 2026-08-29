@@ -17,6 +17,7 @@ import {
   TrueForgeAdapter,
 } from "@workeros/trueforge";
 import { eq } from "drizzle-orm";
+import { closeMcpClient } from "./mcp-client";
 import type { ApproverSession } from "./session";
 
 const env = (name: string, fallback: string) =>
@@ -31,7 +32,7 @@ async function withMcpClient<T>(fn: (client: Client) => Promise<T>) {
   try {
     return await fn(client);
   } finally {
-    await client.close();
+    await closeMcpClient(client);
   }
 }
 

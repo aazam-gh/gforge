@@ -20,7 +20,22 @@ Cloud SQL runtime connection with the web app and MCP, checks the ADK health
 endpoint, and refuses to run without the TrueForge base URL and agent name. It
 never prints or persists a token.
 
+Set `WORKEROS_RESET_DEMO=true` for a deliberate golden-demo reset. Startup
+always applies migrations; the reset additionally restores the synthetic Acme
+billing fixture to its stale $1,020,000 annual value before launching MCP and
+the UI. Never use this flag with non-synthetic data.
+
 Set `TRUEFORGE_BASE_URL` and `TRUEFORGE_AGENT_NAME` from the existing local or remote tenant. Add `TRUEFORGE_TOKEN` only when authentication is enabled. The adapter creates/continues a real SDK session only when the endpoint and agent are present. Its absence is deliberately surfaced as `TRUEFORGE_UNAVAILABLE`; it is never replaced with a fake run.
+
+The standalone TrueForge release does not expose a native Vertex ADC provider.
+For localhost-only development, set `TRUEFORGE_VERTEX_ADC=true`; the launcher
+then configures TrueForge's custom OpenAI-compatible provider against the
+localhost ADK boundary and selects `gemini-3.5-flash`. That boundary calls
+Vertex's official endpoint and refreshes ADC for each request
+and preserves Gemini's required tool-call thought-signature contract when the
+generic TrueForge adapter cannot. The setup script refuses non-local TrueForge
+URLs and no Google credential is stored in TrueForge. Remote TrueForge tenants
+must use their own managed model credential configuration.
 
 The Day One UI uses a server-derived seeded Revenue Ops session for this MVP:
 `WORKEROS_APPROVER_ID`, `WORKEROS_APPROVER_WORKSPACE_ID`, and
