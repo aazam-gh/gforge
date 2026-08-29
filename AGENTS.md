@@ -1,6 +1,14 @@
 # WorkerOS agent instructions
 
-This file is the operating contract for Codex and other coding agents working in this repository. The canonical product and hackathon reference is the attached `WORKEROS_DUAL_HACKATHON_REFERENCE.md`; use it as the source of truth when a decision is not covered here.
+This file is the operating contract for Codex and other coding agents working in this repository. Before changing code, read the repository's `WORKEROS_DUAL_HACKATHON_REFERENCE.md` and `docs/HACKATHON_SCORECARD.md` completely. Treat them as the canonical product direction and current evidence ledger.
+
+## Hackathon operating rules
+
+- Preserve the architecture and product boundaries in the canonical reference. Document conflicts and make the smallest correction; do not silently redesign the product.
+- Prioritize the shared Acme golden demo over optional agents, domains, graph infrastructure, or bonus integrations.
+- Never mark a capability `VERIFIED` or describe it as implemented without a source path plus reproducible execution evidence.
+- Update `docs/HACKATHON_SCORECARD.md` and `docs/DEMO_EVIDENCE.md` whenever a major capability or blocker changes.
+- Never push meaningful work directly to `main`. Use narrow feature branches and preserve the Qodo review trail when Qodo is configured.
 
 ## Product boundary
 

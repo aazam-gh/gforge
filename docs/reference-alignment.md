@@ -9,22 +9,27 @@ Implemented foundation:
 - `apps/web/` contains the required control-plane routes.
 - `packages/contracts/` contains initial Zod state and agent schemas.
 - `packages/policy/` identifies sensitive billing tools.
-- `packages/trueforge/` exposes an explicit unavailable-state adapter.
+- `packages/trueforge/` integrates the SDK session/turn boundary and exposes explicit unavailable states.
 - `services/enterprise-mcp/` defines the required MCP tool surface.
-- `services/adk-agents/` contains typed specialist placeholders.
+- `services/adk-agents/` contains a real typed Contract Agent definition; Billing and Policy specialists remain future work.
 - `workers/revenue-integrity/` contains the worker manifest and Skill.
 - `fixtures/demo-enterprise/acme.json` is synthetic demo data.
 - CI, build, and workspace smoke tests are present.
-- Commercial Change Assurance has a typed deterministic reconciliation core, PostgreSQL/Drizzle schema and migration, database-backed MCP tool surface, and a real ADK Contract Agent definition.
+- Commercial Change Assurance has a typed deterministic reconciliation core, PostgreSQL/Drizzle schema and migration, database-backed MCP tool surface, replay-safe approval/mutation/verification operations, and persisted Case UI composition.
+- The Day One launcher composes Cloud SQL, MCP, ADK health, web, and TrueForge configuration without persisting generated database credentials.
 
-## Explicitly not yet implemented
+## Explicitly not yet verified
 
-The following remain planned or externally blocked and must not be described as live: a local application connection to the created Cloud SQL trial database (the password remains user-held), a live TrueForge tenant session, sandbox/Code Mode execution, ADK deployment on Vertex/Agent Runtime, a Vertex model accessible to this project in `us-central1`, Memory Bank, Pub/Sub/Secret Manager/Cloud Observability, Qodo installation/review history, and real event streaming. The Cloud SQL schema and Acme seed are persisted; end-to-end application integration remains blocked on the local connection and external tenants.
+The following must not be described as live or complete: an authenticated TrueForge golden run, Skill-load proof, sandbox/Code Mode reconciliation, a TrueForge Evidence QA subagent, live event persistence, Google Agent Runtime/Registry/Memory Bank/Identity/Gateway/Model Armor, OpenTelemetry export, Secret Manager, Qodo installation/review history, or a repeatable captured end-to-end run.
 
-## First vertical-slice acceptance
+Cloud SQL is currently running in `us-central1`, but local services were stopped at the 2026-08-29 audit. Vertex AI was disabled, and the configured `gemini-3-flash-preview` does not prove the stated Gemini 3.5+ eligibility requirement. The historical ADK smoke test remains useful engineering evidence but is not current eligibility proof. `/fleet` still contains fixture-driven metrics and specialist availability claims.
 
-The first meaningful implementation PRs should prove: seeded Acme state → real MCP reads → real ADK structured evidence → deterministic reconciliation → persisted TrueForge approval → approved billing write → independent verification → ordered CaseEvents and UI state.
+## Vertical-slice acceptance
+
+The required final proof remains: seeded Acme state → real TrueForge session and Skill → database-backed MCP reads → eligible Gemini 3.5+ ADK specialist evidence → meaningful TrueForge sandbox reconciliation → persisted approval pause and reconnect → one approved billing write → authoritative reread and verification → ordered CaseEvents and resolved UI state.
 
 ## Change-control rule
 
 If implementation reality conflicts with the attached reference, document the conflict in the PR and propose the smallest correction. Do not silently change architecture or check off a requirement based on placeholder code.
+
+Use `docs/HACKATHON_SCORECARD.md` for status and `docs/DEMO_EVIDENCE.md` for reproducible proof.
